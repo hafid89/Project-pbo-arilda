@@ -57,7 +57,7 @@ public class GeometryGUI implements ActionListener {
         tabbedPane = new JTabbedPane();
         tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         
-        tabbedPane.addTab("Elips (2D)", create2DPanel());
+        tabbedPane.addTab("Elipsss (2D)", create2DPanel());
         tabbedPane.addTab("Kerucut Elips", create3DLimasPanel());
         tabbedPane.addTab("Kerucut Terpancung", createKerucutTerpancungPanel());
         tabbedPane.addTab("Tabung Elips", createTabungElipsPanel());
