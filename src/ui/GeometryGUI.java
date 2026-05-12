@@ -616,8 +616,7 @@ public class GeometryGUI implements ActionListener {
             
             ================================================
             
-            © 2024 - Proyek PBO Kelompok
-            Versi 1.0 (Tanpa Database)
+            © 2026 - Proyek PBO Kelompok
             """);
         
         JScrollPane scroll = new JScrollPane(aboutText);
