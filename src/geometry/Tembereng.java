@@ -5,18 +5,16 @@ package geometry;
  */
 public class Tembereng extends Benda3Dimensi {
     
-    private double jariJari;
     private double tinggi;
     private double radiusBola;
     private static final double PI = Math.PI;
     
     public Tembereng() {
-        this(1.0, 0.5, 1.0);
+        this(0.5, 1.0);
     }
     
-    public Tembereng(double jariJari, double tinggi, double radiusBola) {
+    public Tembereng(double tinggi, double radiusBola) {
         super("Tembereng Bola", "Ungu");
-        this.jariJari = jariJari;
         this.tinggi = tinggi;
         this.radiusBola = radiusBola;
         hitungVolume();
@@ -32,7 +30,7 @@ public class Tembereng extends Benda3Dimensi {
     @Override
     public double hitungLuasPermukaan() {
         double luasLengkung = 2 * PI * radiusBola * tinggi;
-        double luasAlas = PI * Math.pow(jariJari, 2);
+        double luasAlas = PI * Math.pow(radiusBola, 2);
         luasPermukaan = luasLengkung + luasAlas;
         return luasPermukaan;
     }
@@ -44,7 +42,7 @@ public class Tembereng extends Benda3Dimensi {
     
     @Override
     public double hitungKeliling() {
-        return 2 * PI * jariJari;
+        return 2 * PI * radiusBola;
     }
     
     @Override
@@ -58,6 +56,6 @@ public class Tembereng extends Benda3Dimensi {
             Volume: %.4f satuan volume
             Luas Permukaan: %.4f satuan luas
             """, 
-            getNama(), getWarna(), jariJari, tinggi, radiusBola, volume, luasPermukaan);
+            getNama(), getWarna(), tinggi, radiusBola, volume, luasPermukaan);
     }
 } 
