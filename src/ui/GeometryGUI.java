@@ -460,18 +460,12 @@ public class GeometryGUI implements ActionListener {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
         gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("Jari-jari Alas (r):"), gbc);
-        gbc.gridx = 1;
-        JTextField tfR = new JTextField(10);
-        panel.add(tfR, gbc);
-        
-        gbc.gridx = 0; gbc.gridy = 1;
         panel.add(new JLabel("Tinggi Tembereng (t):"), gbc);
         gbc.gridx = 1;
         JTextField tfT = new JTextField(10);
         panel.add(tfT, gbc);
         
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0; gbc.gridy = 1;
         panel.add(new JLabel("Radius Bola (R):"), gbc);
         gbc.gridx = 1;
         tfRadiusBola = new JTextField(10);
@@ -480,16 +474,15 @@ public class GeometryGUI implements ActionListener {
         JButton btnHitung = new JButton("Hitung");
         btnHitung.addActionListener(e -> {
             try {
-                double r = Double.parseDouble(tfR.getText());
                 double t = Double.parseDouble(tfT.getText());
                 double R = Double.parseDouble(tfRadiusBola.getText());
-                calculateTembereng(r, t, R);
+                calculateTembereng(t, R);
             } catch (NumberFormatException ex) {
                 showError("Input harus berupa angka!");
             }
         });
         
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0; gbc.gridy = 2;
         gbc.gridwidth = 2;
         panel.add(btnHitung, gbc);
         
@@ -816,9 +809,9 @@ public class GeometryGUI implements ActionListener {
         calculateShape(juring, String.format("r=%.2f, sudut=%.2f°, t=%.2f", r, Math.toDegrees(sudutRad), t), "Juring");
     }
     
-    private void calculateTembereng(double r, double t, double R) {
-        Tembereng tembereng = new Tembereng(r, t, R);
-        calculateShape(tembereng, String.format("r=%.2f, t=%.2f, R=%.2f", r, t, R), "Tembereng");
+    private void calculateTembereng(double t, double R) {
+        Tembereng tembereng = new Tembereng(t, R);
+        calculateShape(tembereng, String.format("t=%.2f, R=%.2f", t, R), "Tembereng");
     }
     
     private void calculateCincin(double R, double r, double t) {

@@ -1,62 +1,170 @@
 package geometry;
 
 /**
- * Kelas Cincin dengan pola dasar elips (Torus)
- * Benda 3 Dimensi (Prisma)
+ * Kelas Cincin Elips (Elliptic Torus)
+ * Benda 3 Dimensi
  */
 public class CincinElips extends Benda3Dimensi {
-    
-    private double jariJariLuar;
-    private double jariJariDalam;
-    private double tinggi;
+
+    // Radius utama torus
+    private double radiusUtama;
+
+    // Semi-sumbu elips
+    private double semiMayor;
+    private double semiMinor;
+
     private static final double PI = Math.PI;
-    
+
+    /**
+     * Constructor default
+     */
     public CincinElips() {
-        this(2.0, 0.5, 1.0);
+        this(5.0, 2.0, 1.0);
     }
-    
-    public CincinElips(double jariJariLuar, double jariJariDalam, double tinggi) {
-        super("Cincin Elips (Torus)", "Pink");
-        this.jariJariLuar = jariJariLuar;
-        this.jariJariDalam = jariJariDalam;
-        this.tinggi = tinggi;
+
+    /**
+     * Constructor dengan parameter
+     *
+     * @param radiusUtama Radius utama torus (R)
+     * @param semiMayor   Semi-sumbu mayor elips (a)
+     * @param semiMinor   Semi-sumbu minor elips (b)
+     */
+    public CincinElips(double radiusUtama,
+                       double semiMayor,
+                       double semiMinor) {
+
+        super("Cincin Elips (Elliptic Torus)", "Pink");
+
+        this.radiusUtama = radiusUtama;
+        this.semiMayor = semiMayor;
+        this.semiMinor = semiMinor;
+
         hitungVolume();
         hitungLuasPermukaan();
     }
-    
+
+    /**
+     * Menghitung volume cincin elips
+     *
+     * Rumus:
+     * V = 2π²Rab
+     */
     @Override
     public double hitungVolume() {
-        volume = 2 * Math.pow(PI, 2) * jariJariLuar * Math.pow(jariJariDalam, 2);
+
+        volume =
+            2 *
+            Math.pow(PI, 2) *
+            radiusUtama *
+            semiMayor *
+            semiMinor;
+
         return volume;
     }
-    
+
+    /**
+     * Menghitung luas permukaan cincin elips
+     *
+     * Pendekatan:
+     * L ≈ 4π²R √((a²+b²)/2)
+     */
     @Override
     public double hitungLuasPermukaan() {
-        luasPermukaan = 4 * Math.pow(PI, 2) * jariJariLuar * jariJariDalam;
+
+        double pendekatanElips =
+            Math.sqrt(
+                (Math.pow(semiMayor, 2)
+                + Math.pow(semiMinor, 2)) / 2.0
+            );
+
+        luasPermukaan =
+            4 *
+            Math.pow(PI, 2) *
+            radiusUtama *
+            pendekatanElips;
+
         return luasPermukaan;
     }
-    
+
+    /**
+     * Alias luas permukaan
+     */
     @Override
     public double hitungLuas() {
         return hitungLuasPermukaan();
     }
-    
+
+    /**
+     * Keliling pendekatan
+     */
     @Override
     public double hitungKeliling() {
-        return 2 * PI * (jariJariLuar + jariJariDalam);
+
+        return 2 * PI * (radiusUtama + semiMayor);
     }
-    
+
+    /**
+     * Informasi objek
+     */
     @Override
     public String info() {
+
         return String.format("""
             === %s ===
             Warna: %s
-            Jari-jari Luar (R): %.4f
-            Jari-jari Dalam (r): %.4f
-            Tinggi: %.4f
+
+            Radius Utama (R): %.4f
+            Semi Mayor Elips (a): %.4f
+            Semi Minor Elips (b): %.4f
+
             Volume: %.4f satuan volume
             Luas Permukaan: %.4f satuan luas
-            """, 
-            getNama(), getWarna(), jariJariLuar, jariJariDalam, tinggi, volume, luasPermukaan);
+            """,
+
+            getNama(),
+            getWarna(),
+
+            radiusUtama,
+            semiMayor,
+            semiMinor,
+
+            volume,
+            luasPermukaan
+        );
     }
-} 
+
+    /**
+     * Getter dan Setter
+     */
+    public double getRadiusUtama() {
+        return radiusUtama;
+    }
+
+    public void setRadiusUtama(double radiusUtama) {
+        this.radiusUtama = radiusUtama;
+        hitungVolume();
+        hitungLuasPermukaan();
+    }
+
+    public double getSemiMayor() {
+        return semiMayor;
+    }
+
+    public void setSemiMayor(double semiMayor) {
+        this.semiMayor = semiMayor;
+        hitungVolume();
+        hitungLuasPermukaan();
+    }
+
+    public double getSemiMinor() {
+        return semiMinor;
+    }
+
+    public void setSemiMinor(double semiMinor) {
+        this.semiMinor = semiMinor;
+        hitungVolume();
+        hitungLuasPermukaan();
+    }
+
+    
+}
