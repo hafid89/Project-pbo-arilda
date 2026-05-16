@@ -1,62 +1,265 @@
 package geometry;
 
 /**
- * Kelas Cincin dengan pola dasar elips (Torus)
- * Benda 3 Dimensi (Prisma)
+ * Kelas Cincin Elips (Elliptic Torus)
+ * Benda 3 Dimensi
+ * Contoh OOP dengan Encapsulation
  */
 public class CincinElips extends Benda3Dimensi {
-    
-    private double jariJariLuar;
-    private double jariJariDalam;
-    private double tinggi;
+
+    // =========================
+    // ENCAPSULATION (private)
+    // =========================
+
+    // Radius utama torus (R)
+    private double radiusUtama;
+
+    // Semi-sumbu elips
+    private double semiMayor;
+    private double semiMinor;
+
     private static final double PI = Math.PI;
-    
+
+    // =========================
+    // Constructor
+    // =========================
+
+    /**
+     * Constructor default
+     */
     public CincinElips() {
-        this(2.0, 0.5, 1.0);
+        this(5.0, 2.0, 1.0);
     }
-    
-    public CincinElips(double jariJariLuar, double jariJariDalam, double tinggi) {
-        super("Cincin Elips (Torus)", "Pink");
-        this.jariJariLuar = jariJariLuar;
-        this.jariJariDalam = jariJariDalam;
-        this.tinggi = tinggi;
+
+    /**
+     * Constructor dengan parameter
+     *
+     * @param radiusUtama Radius utama torus
+     * @param semiMayor Semi-sumbu mayor elips
+     * @param semiMinor Semi-sumbu minor elips
+     */
+    public CincinElips(double radiusUtama,
+                       double semiMayor,
+                       double semiMinor) {
+
+        super("Cincin Elips (Elliptic Torus)", "Pink");
+
+        // menggunakan setter agar tervalidasi
+        setRadiusUtama(radiusUtama);
+        setSemiMayor(semiMayor);
+        setSemiMinor(semiMinor);
+
         hitungVolume();
         hitungLuasPermukaan();
     }
-    
+
+    // =========================
+    // Getter dan Setter
+    // =========================
+
+    /**
+     * Getter radius utama
+     */
+    public double getRadiusUtama() {
+        return radiusUtama;
+    }
+
+    /**
+     * Setter radius utama
+     */
+    public void setRadiusUtama(double radiusUtama) {
+
+        if (radiusUtama > 0) {
+            this.radiusUtama = radiusUtama;
+        } else {
+            System.out.println("Radius utama harus lebih dari 0");
+            this.radiusUtama = 1;
+        }
+
+        hitungVolume();
+        hitungLuasPermukaan();
+    }
+
+    /**
+     * Getter semi mayor
+     */
+    public double getSemiMayor() {
+        return semiMayor;
+    }
+
+    /**
+     * Setter semi mayor
+     */
+    public void setSemiMayor(double semiMayor) {
+
+        if (semiMayor > 0) {
+            this.semiMayor = semiMayor;
+        } else {
+            System.out.println("Semi mayor harus lebih dari 0");
+            this.semiMayor = 1;
+        }
+
+        hitungVolume();
+        hitungLuasPermukaan();
+    }
+
+    /**
+     * Getter semi minor
+     */
+    public double getSemiMinor() {
+        return semiMinor;
+    }
+
+    /**
+     * Setter semi minor
+     */
+    public void setSemiMinor(double semiMinor) {
+
+        if (semiMinor > 0) {
+            this.semiMinor = semiMinor;
+        } else {
+            System.out.println("Semi minor harus lebih dari 0");
+            this.semiMinor = 1;
+        }
+
+        hitungVolume();
+        hitungLuasPermukaan();
+    }
+
+    // =========================
+    // Perhitungan Volume
+    // =========================
+
+    /**
+     * Menghitung volume cincin elips
+     *
+     * Rumus:
+     * V = 2π²Rab
+     */
     @Override
     public double hitungVolume() {
-        volume = 2 * Math.pow(PI, 2) * jariJariLuar * Math.pow(jariJariDalam, 2);
+
+        volume =
+            2 *
+            Math.pow(PI, 2) *
+            radiusUtama *
+            semiMayor *
+            semiMinor;
+
         return volume;
     }
-    
+
+    // =========================
+    // Perhitungan Luas Permukaan
+    // =========================
+
+    /**
+     * Menghitung luas permukaan cincin elips
+     *
+     * Pendekatan:
+     * L ≈ 4π²R √((a²+b²)/2)
+     */
     @Override
     public double hitungLuasPermukaan() {
-        luasPermukaan = 4 * Math.pow(PI, 2) * jariJariLuar * jariJariDalam;
+
+        double pendekatanElips =
+            Math.sqrt(
+                (
+                    Math.pow(semiMayor, 2)
+                    +
+                    Math.pow(semiMinor, 2)
+                ) / 2.0
+            );
+
+        luasPermukaan =
+            4 *
+            Math.pow(PI, 2) *
+            radiusUtama *
+            pendekatanElips;
+
         return luasPermukaan;
     }
-    
+
+    /**
+     * Alias luas permukaan
+     */
     @Override
     public double hitungLuas() {
         return hitungLuasPermukaan();
     }
-    
+
+    /**
+     * Keliling pendekatan
+     */
     @Override
     public double hitungKeliling() {
-        return 2 * PI * (jariJariLuar + jariJariDalam);
+
+        return
+            2 *
+            PI *
+            (radiusUtama + semiMayor);
     }
-    
+
+    // =========================
+    // Informasi Objek
+    // =========================
+
+    /**
+     * Menampilkan informasi objek
+     */
     @Override
     public String info() {
+
         return String.format("""
             === %s ===
             Warna: %s
-            Jari-jari Luar (R): %.4f
-            Jari-jari Dalam (r): %.4f
-            Tinggi: %.4f
+
+            Radius Utama (R): %.4f
+            Semi Mayor Elips (a): %.4f
+            Semi Minor Elips (b): %.4f
+
             Volume: %.4f satuan volume
             Luas Permukaan: %.4f satuan luas
-            """, 
-            getNama(), getWarna(), jariJariLuar, jariJariDalam, tinggi, volume, luasPermukaan);
+            """,
+
+            getNama(),
+            getWarna(),
+
+            radiusUtama,
+            semiMayor,
+            semiMinor,
+
+            volume,
+            luasPermukaan
+        );
     }
-} 
+
+    // =========================
+    // Main Testing
+    // =========================
+
+    public static void main(String[] args) {
+
+        CincinElips c1 =
+            new CincinElips(5, 2, 1);
+
+        System.out.println(c1.info());
+
+        System.out.println();
+
+        CincinElips c2 =
+            new CincinElips(8, 3, 2);
+
+        System.out.println(c2.info());
+
+        System.out.println();
+
+        // Contoh penggunaan setter
+        c1.setRadiusUtama(10);
+        c1.setSemiMayor(4);
+        c1.setSemiMinor(2);
+
+        System.out.println("=== Setelah Diubah ===");
+        System.out.println(c1.info());
+    }
+}

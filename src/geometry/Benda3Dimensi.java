@@ -29,11 +29,11 @@ public abstract class Benda3Dimensi extends BendaGeometri implements VolumeCalcu
     @Override
     public abstract double hitungKeliling();
     
-    public double getVolume() {
+    public synchronized double getVolume() {
         return volume;
     }
     
-    public double getLuasPermukaan() {
+    public synchronized double getLuasPermukaan() {
         return luasPermukaan;
     }
     

@@ -69,7 +69,13 @@ public class GeometryCalculator {
     
     public void calculateAsync(BendaGeometri shape, String parameters, 
                                GeometryCalculationCallback callback) {
-        
+        // If a calculation is already running, interrupt it and log interruption
+        if (calculationThread != null && calculationThread.isAlive()) {
+            String prevName = calculationThread.getName();
+            calculationThread.interrupt();
+            System.out.printf("[%tT] [Calculator] Perhitungan baru untuk %s meng-interrupt %s%n", new Date(), shape.getNama(), prevName);
+        }
+
         calculationThread = new Thread(() -> {
             isCalculating = true;
             
