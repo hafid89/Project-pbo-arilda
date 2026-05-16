@@ -166,5 +166,19 @@ public class CincinElips extends Benda3Dimensi {
         hitungLuasPermukaan();
     }
 
-    
+    /**
+     * Main untuk testing
+     */
+    public static void main(String[] args) {
+
+        CincinElips c1 =
+            new CincinElips(5, 2, 1);
+
+        System.out.println(c1.info());
+
+        CincinElips c2 =
+            new CincinElips(8, 3, 2);
+
+        System.out.println(c2.info());
+    }
 }
