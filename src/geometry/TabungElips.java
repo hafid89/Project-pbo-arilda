@@ -14,6 +14,9 @@ public class TabungElips extends Benda3DimensiAlas {
     public TabungElips(Elips alas, double tinggi) {
         super("Tabung Alas Elips", "Hijau", alas);
         this.tinggi = tinggi;
+        // 🔧 PERBAIKAN: Panggil method hitung setelah inisialisasi
+        hitungVolume();
+        hitungLuasPermukaan();
     }
     
     public TabungElips(double sumbuPanjang, double sumbuPendek, double tinggi) {
@@ -48,9 +51,22 @@ public class TabungElips extends Benda3DimensiAlas {
         return tinggi;
     }
     
+    public void setTinggi(double tinggi) {
+        this.tinggi = tinggi;
+        // 🔧 PERBAIKAN: Update perhitungan saat tinggi berubah
+        hitungVolume();
+        hitungLuasPermukaan();
+    }
+    
     @Override
     public Elips getAlas() {
         return (Elips) super.getAlas();
+    }
+    
+    // 🔧 PERBAIKAN: Method untuk update semua perhitungan
+    public void updateAll() {
+        hitungVolume();
+        hitungLuasPermukaan();
     }
     
     @Override

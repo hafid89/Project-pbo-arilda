@@ -16,23 +16,23 @@ public abstract class Benda3DimensiAlas extends Benda3Dimensi {
         this(nama, "Putih", alas);
     }
 
-    public Benda2Dimensi getAlas() {
+    public synchronized Benda2Dimensi getAlas() {
         return alas;
     }
 
-    public void setAlas(Benda2Dimensi alas) {
+    public synchronized void setAlas(Benda2Dimensi alas) {
         this.alas = alas;
     }
 
-    public boolean hasAlas() {
+    public synchronized boolean hasAlas() {
         return alas != null;
     }
 
-    public double hitungLuasAlas() {
+    public synchronized double hitungLuasAlas() {
         return hasAlas() ? alas.hitungLuas() : 0;
     }
 
-    public double hitungKelilingAlas() {
+    public synchronized double hitungKelilingAlas() {
         return hasAlas() ? alas.hitungKeliling() : 0;
     }
 }

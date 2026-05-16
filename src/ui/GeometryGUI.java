@@ -28,6 +28,7 @@ public class GeometryGUI implements ActionListener {
     private JTextField tfSumbuX, tfSumbuY, tfSumbuZ;
     private JTextField tfSudut, tfRadiusBola;
     private JCheckBox cbUseElipsBaseForKerucut, cbUseElipsBaseForKerucutTerp, cbUseElipsBaseForTabung;
+    private JCheckBox cbUseShapeThreading;
 
     private GeometryCalculator calculator;
 
@@ -106,6 +107,9 @@ public class GeometryGUI implements ActionListener {
 
         bottomPanel.add(statusLabel, BorderLayout.WEST);
         bottomPanel.add(progressBar, BorderLayout.CENTER);
+        // Option to use shape-level threading (calls calculateAsync / calculateWithFuture on shapes)
+        cbUseShapeThreading = new JCheckBox("Use shape-level threading", false);
+        bottomPanel.add(cbUseShapeThreading, BorderLayout.EAST);
 
         JPanel resultPanel = new JPanel(new BorderLayout());
         resultPanel.setBorder(BorderFactory.createCompoundBorder(
@@ -117,6 +121,9 @@ public class GeometryGUI implements ActionListener {
         resultArea.setEditable(false);
         resultArea.setFont(new Font("Consolas", Font.PLAIN, 12));
         resultArea.setBackground(new Color(250, 250, 255));
+
+        // Redirect System.out/err to resultArea so background thread logs appear in GUI
+        redirectSystemStreams();
 
         JScrollPane resultScroll = new JScrollPane(resultArea);
         resultPanel.add(resultScroll, BorderLayout.CENTER);
@@ -790,6 +797,14 @@ public class GeometryGUI implements ActionListener {
         menuBar.add(fileMenu);
         menuBar.add(viewMenu);
         menuBar.add(historyMenu);
+        JMenu toolsMenu = new JMenu("Tools");
+        JMenuItem runDemoItem = new JMenuItem("Run Parallel Demo");
+        runDemoItem.addActionListener(e -> {
+            // Run demo in background so UI stays responsive
+            new Thread(() -> geometry.MultithreadingGeometryDemo.main(new String[0])).start();
+        });
+        toolsMenu.add(runDemoItem);
+        menuBar.add(toolsMenu);
         menuBar.add(helpMenu);
 
         frame.setJMenuBar(menuBar);
@@ -816,6 +831,28 @@ public class GeometryGUI implements ActionListener {
     }
 
     private void calculateShape(BendaGeometri shape, String parameters, String label) {
+        // If user chose to use shape-level threading, use the shape's async/future APIs
+        if (cbUseShapeThreading != null && cbUseShapeThreading.isSelected()) {
+            resultArea.setText("");
+            statusLabel.setText(label + " sedang dihitung (shape-thread)");
+            java.util.concurrent.Future<Double> future = shape.calculateWithFuture();
+            new Thread(() -> {
+                try {
+                    Double res = future.get();
+                    SwingUtilities.invokeLater(() -> {
+                        resultArea.setText(shape.info());
+                        statusLabel.setText(label + " selesai | result = " + String.format("%.4f", res));
+                        // add to history
+                        addToHistory(shape.getNama(), parameters, res, (shape instanceof VolumeCalculable) ? "volume" : "luas");
+                        loadHistory();
+                    });
+                } catch (Exception e) {
+                    SwingUtilities.invokeLater(() -> showError("Error: " + e.getMessage()));
+                }
+            }).start();
+            return;
+        }
+
         if (calculator.isCalculating()) {
             showError("Perhitungan sedang berlangsung. Tunggu sampai selesai.");
             return;
@@ -946,11 +983,21 @@ public class GeometryGUI implements ActionListener {
     private void addToHistory(String shapeName, String parameters, double result, String resultType) {
         String record = String.format("[%tT] %s(%s) = %.4f %s",
                 new java.util.Date(), shapeName, parameters, result, resultType);
+        // Ensure history model exists before updating UI
+        if (historyListModel == null) {
+            historyListModel = new DefaultListModel<>();
+            historyList = new JList<>(historyListModel);
+        }
         historyListModel.add(0, record);
         calculator.addCalculationRecord(shapeName, parameters, result, resultType);
     }
 
     private void loadHistory() {
+        // Lazily create history UI model if not yet created
+        if (historyListModel == null) {
+            historyListModel = new DefaultListModel<>();
+            historyList = new JList<>(historyListModel);
+        }
         historyListModel.clear();
         java.util.List<GeometryCalculator.CalculationRecord> records = calculator.getHistory();
         if (records.isEmpty()) {
@@ -998,6 +1045,32 @@ public class GeometryGUI implements ActionListener {
                     "Export Sukses", JOptionPane.INFORMATION_MESSAGE);
             statusLabel.setText("History diekspor ke: " + filename);
         }
+    }
+
+    // Redirect System.out and System.err to the GUI resultArea so thread logs are visible
+    private void redirectSystemStreams() {
+        OutputStream out = new OutputStream() {
+            private final StringBuilder sb = new StringBuilder();
+
+            @Override
+            public void write(int b) throws IOException {
+                if (b == '\r') return;
+                sb.append((char) b);
+                if (b == '\n') {
+                    flush();
+                }
+            }
+
+            @Override
+            public void flush() throws IOException {
+                final String text = sb.toString();
+                SwingUtilities.invokeLater(() -> resultArea.append(text));
+                sb.setLength(0);
+            }
+        };
+
+        System.setOut(new PrintStream(out, true));
+        System.setErr(new PrintStream(out, true));
     }
 
     private void showError(String message) {

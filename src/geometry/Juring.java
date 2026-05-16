@@ -1,68 +1,112 @@
 package geometry;
 
 /**
- * Kelas Juring Bola - Benda 3 Dimensi (Prisma)
+ * Kelas Prisma Juring
+ * (Sector Prism)
  */
 public class Juring extends Benda3Dimensi {
-    
+
     private double jariJari;
-    private double sudut;
+    private double sudut; // radian
     private double tinggi;
+
     private static final double PI = Math.PI;
-    
+
     public Juring() {
-        this(1.0, PI / 2, 1.0);
+        this(3.0, PI / 2, 5.0);
     }
-    
-    public Juring(double jariJari, double sudut, double tinggi) {
-        super("Juring Bola", "Orange");
+
+    public Juring(double jariJari,
+                  double sudut,
+                  double tinggi) {
+
+        super("Prisma Juring", "Orange");
+
         this.jariJari = jariJari;
         this.sudut = sudut;
         this.tinggi = tinggi;
+
         hitungVolume();
         hitungLuasPermukaan();
     }
-    
+
+    /**
+     * Volume prisma juring
+     */
     @Override
     public double hitungVolume() {
-        volume = (1.0 / 3.0) * Math.pow(jariJari, 3) * sudut;
+
+        volume =
+            0.5 *
+            Math.pow(jariJari, 2) *
+            sudut *
+            tinggi;
+
         return volume;
     }
-    
+
+    /**
+     * Luas permukaan prisma juring
+     */
     @Override
     public double hitungLuasPermukaan() {
-        double luasSelimut = 2 * PI * jariJari * tinggi;
-        double luasAlas = PI * Math.pow(jariJari, 2) * (sudut / (2 * PI));
-        luasPermukaan = luasSelimut + luasAlas;
+
+        double luasDuaAlas =
+            Math.pow(jariJari, 2) * sudut;
+
+        double selimutLengkung =
+            jariJari * sudut * tinggi;
+
+        double duaSisiRadial =
+            2 * jariJari * tinggi;
+
+        luasPermukaan =
+            luasDuaAlas +
+            selimutLengkung +
+            duaSisiRadial;
+
         return luasPermukaan;
     }
-    
-    public double hitungLuasAlas() {
-        return PI * Math.pow(jariJari, 2) * (sudut / (2 * PI));
-    }
-    
+
     @Override
     public double hitungLuas() {
         return hitungLuasPermukaan();
     }
-    
+
     @Override
     public double hitungKeliling() {
-        return 2 * PI * jariJari;
+
+        return
+            (jariJari * sudut)
+            + 2 * jariJari;
     }
-    
+
     @Override
     public String info() {
+
         return String.format("""
             === %s ===
             Warna: %s
+
             Jari-jari: %.4f
             Sudut: %.4f rad (%.2f°)
             Tinggi: %.4f
+
             Volume: %.4f satuan volume
             Luas Permukaan: %.4f satuan luas
-            """, 
-            getNama(), getWarna(), jariJari, sudut, Math.toDegrees(sudut), 
-            tinggi, volume, luasPermukaan);
+            """,
+
+            getNama(),
+            getWarna(),
+
+            jariJari,
+            sudut,
+            Math.toDegrees(sudut),
+
+            tinggi,
+
+            volume,
+            luasPermukaan
+        );
     }
 }

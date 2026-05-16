@@ -27,11 +27,11 @@ public abstract class Benda2Dimensi extends BendaGeometri {
     @Override
     public abstract double hitungKeliling();
     
-    public double getLuas() {
+    public synchronized double getLuas() {
         return luas;
     }
     
-    public double getKeliling() {
+    public synchronized double getKeliling() {
         return keliling;
     }
     

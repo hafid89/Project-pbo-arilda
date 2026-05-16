@@ -1,16 +1,24 @@
  
 package geometry;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 /**
  * Abstract Class - Demonstrasi Abstract Class
  * Kelas induk abstrak untuk semua benda geometri
  */
-public abstract class BendaGeometri {
+public abstract class BendaGeometri implements Runnable {
     
     // Encapsulation - Attribute dengan private modifier
     private String nama;
     private String warna;
     private static int totalObjek = 0;
+    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     
     // Constructor overloading
     public BendaGeometri() {
@@ -24,27 +32,31 @@ public abstract class BendaGeometri {
     public BendaGeometri(String nama, String warna) {
         this.nama = nama;
         this.warna = warna;
+        incrementTotalObjek();
+    }
+    
+    private static synchronized void incrementTotalObjek() {
         totalObjek++;
     }
     
     // Encapsulation - Getter dan Setter (Information Hiding)
-    public String getNama() {
+    public synchronized String getNama() {
         return nama;
     }
     
-    public void setNama(String nama) {
+    public synchronized void setNama(String nama) {
         this.nama = nama;
     }
     
-    public String getWarna() {
+    public synchronized String getWarna() {
         return warna;
     }
     
-    public void setWarna(String warna) {
+    public synchronized void setWarna(String warna) {
         this.warna = warna;
     }
     
-    public static int getTotalObjek() {
+    public static synchronized int getTotalObjek() {
         return totalObjek;
     }
     
@@ -52,13 +64,59 @@ public abstract class BendaGeometri {
     public abstract double hitungLuas();
     public abstract double hitungKeliling();
     public abstract String info();
+    
+    @Override
+    public final void run() {
+        String namaShape = getNama();
+        log(String.format("%s: mulai menghitung...", namaShape));
+        try {
+            // Delay 2 seconds so the process is clearly visible
+            Thread.sleep(2000);
+        } catch (InterruptedException ie) {
+            log(String.format("%s: terinterupsi saat menghitung", namaShape));
+            Thread.currentThread().interrupt();
+            return;
+        }
+
+        synchronized (this) {
+            double luas = hitungLuas();
+            double keliling = hitungKeliling();
+            if (this instanceof VolumeCalculable) {
+                VolumeCalculable v = (VolumeCalculable) this;
+                double volume = v.hitungVolume();
+                double luasPermukaan = v.hitungLuasPermukaan();
+                log(String.format("%s: selesai, volume=%.4f, luasPermukaan=%.4f", namaShape, volume, luasPermukaan));
+            } else {
+                log(String.format("%s: selesai, luas=%.4f, keliling=%.4f", namaShape, luas, keliling));
+            }
+        }
+    }
+    
+    public void calculateAsync() {
+        EXECUTOR.execute(this);
+    }
+    
+    public Future<Double> calculateWithFuture() {
+        return EXECUTOR.submit(() -> {
+            run();
+            if (this instanceof VolumeCalculable) {
+                return ((VolumeCalculable) this).hitungVolume();
+            }
+            return hitungLuas();
+        });
+    }
+    
+    private static String now() {
+        return LocalTime.now().format(TIME_FORMATTER);
+    }
+    
+    private static String threadLabel() {
+        return "Thread-" + Thread.currentThread().getId();
+    }
+    
+    protected static void log(String message) {
+        System.out.printf("[%s] [%s] %s%n", now(), threadLabel(), message);
+    }
 }
 
-/**
- * Interface untuk benda yang memiliki volume
- * Demonstrasi Interface
- */
-interface VolumeCalculable {
-    double hitungVolume();
-    double hitungLuasPermukaan();
-}
+// VolumeCalculable interface moved to its own file VolumeCalculable.java
