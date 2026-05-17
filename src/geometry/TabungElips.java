@@ -12,7 +12,7 @@ public class TabungElips extends Benda3DimensiAlas {
     }
     
     public TabungElips(Elips alas, double tinggi) {
-        super("Tabung Alas Elips", "Hijau", alas);
+        super("Tabung Alas Elips", alas);
         this.tinggi = tinggi;
         // 🔧 PERBAIKAN: Panggil method hitung setelah inisialisasi
         hitungVolume();
@@ -74,13 +74,12 @@ public class TabungElips extends Benda3DimensiAlas {
         Elips alas = getAlas();
         return String.format("""
             === %s ===
-            Warna: %s
             Alas Elips: a=%.4f, b=%.4f
             Tinggi: %.4f
             Volume: %.4f satuan volume
             Luas Permukaan: %.4f satuan luas
             """, 
-            getNama(), getWarna(),
+            getNama(),
             alas.getSumbuPanjang(), alas.getSumbuPendek(),
             tinggi, volume, luasPermukaan);
     }

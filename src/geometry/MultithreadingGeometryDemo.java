@@ -65,7 +65,6 @@ public class MultithreadingGeometryDemo {
                 try {
                     future.get();
                 } catch (InterruptedException | ExecutionException e) {
-                    // ignore; this may be interrupted by later groups
                 }
             }
         }

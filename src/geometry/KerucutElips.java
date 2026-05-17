@@ -18,7 +18,7 @@ public class KerucutElips extends Benda3DimensiAlas {
     }
     
     public KerucutElips(Elips alas, double tinggi) {
-        super("Kerucut Alas Elips", "Merah", alas);
+        super("Kerucut Alas Elips", alas);
         this.tinggi = tinggi;
         updateAll();
     }
@@ -27,11 +27,7 @@ public class KerucutElips extends Benda3DimensiAlas {
         this(new Elips(sumbuPanjang, sumbuPendek), tinggi);
     }
     
-    public KerucutElips(double sumbuPanjang, double sumbuPendek, double tinggi, String warna) {
-        super("Kerucut Alas Elips", warna, new Elips(sumbuPanjang, sumbuPendek));
-        this.tinggi = tinggi;
-        updateAll();
-    }
+    // removed obsolete constructor that accepted color
     
     // Method private untuk mengupdate semua perhitungan
     private void updateAll() {
@@ -136,7 +132,6 @@ public class KerucutElips extends Benda3DimensiAlas {
         Elips alas = getAlas();
         return String.format("""
             === %s ===
-            Warna: %s
             Alas Elips: a=%.4f, b=%.4f
             Tinggi: %.4f
             Garis Pelukis (rumus baru): %.4f
@@ -145,7 +140,7 @@ public class KerucutElips extends Benda3DimensiAlas {
             Volume: %.4f satuan volume
             Luas Permukaan: %.4f satuan luas
             """, 
-            getNama(), getWarna(),
+            getNama(),
             alas.getSumbuPanjang(), alas.getSumbuPendek(),
             tinggi, garisPelukis,
             hitungLuasAlas(), hitungLuasSelimut(),

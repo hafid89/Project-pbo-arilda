@@ -131,7 +131,6 @@ public class KerucutTerpancung extends KerucutElips {
         
         return String.format("""
             === %s ===
-            Warna: %s
             Alas Bawah: a=%.4f, b=%.4f (radius efektif=%.4f)
             Alas Atas: radius=%.4f (luas=%.4f)
             Tinggi: %.4f
@@ -140,7 +139,7 @@ public class KerucutTerpancung extends KerucutElips {
             Luas Selimut: %.4f satuan luas
             Rasio (r_atas/r_bawah): %.4f
             """, 
-            getNama(), getWarna(),
+            getNama(),
             alasBawah.getSumbuPanjang(), alasBawah.getSumbuPendek(), radiusEfektifBawah,
             radiusEfektifAtas, hitungLuasAlasAtas(),
             getTinggi(), volume, luasPermukaan, hitungLuasSelimutTerpancung(),

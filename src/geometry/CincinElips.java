@@ -42,7 +42,7 @@ public class CincinElips extends Benda3Dimensi {
                        double semiMayor,
                        double semiMinor) {
 
-        super("Cincin Elips (Elliptic Torus)", "Pink");
+        super("Cincin Elips (Elliptic Torus)");
 
         // menggunakan setter agar tervalidasi
         setRadiusUtama(radiusUtama);
@@ -212,7 +212,6 @@ public class CincinElips extends Benda3Dimensi {
 
         return String.format("""
             === %s ===
-            Warna: %s
 
             Radius Utama (R): %.4f
             Semi Mayor Elips (a): %.4f
@@ -221,14 +220,10 @@ public class CincinElips extends Benda3Dimensi {
             Volume: %.4f satuan volume
             Luas Permukaan: %.4f satuan luas
             """,
-
             getNama(),
-            getWarna(),
-
             radiusUtama,
             semiMayor,
             semiMinor,
-
             volume,
             luasPermukaan
         );

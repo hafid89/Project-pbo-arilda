@@ -39,7 +39,7 @@ public class BolaElips extends Benda3Dimensi {
                      double sumbuY,
                      double sumbuZ) {
 
-        super("Bola Elips (Ellipsoid)", "Kuning");
+        super("Bola Elips (Ellipsoid)");
 
         setSumbuX(sumbuX);
         setSumbuY(sumbuY);
@@ -55,7 +55,7 @@ public class BolaElips extends Benda3Dimensi {
      */
     public BolaElips(double semuaSumbu) {
 
-        super("Bola Elips (Ellipsoid)", "Kuning");
+        super("Bola Elips (Ellipsoid)");
 
         setSumbuX(semuaSumbu);
         setSumbuY(semuaSumbu);
@@ -214,7 +214,6 @@ public class BolaElips extends Benda3Dimensi {
 
         return String.format("""
             === %s ===
-            Warna: %s
 
             Radius X (a): %.4f
             Radius Y (b): %.4f
@@ -223,14 +222,10 @@ public class BolaElips extends Benda3Dimensi {
             Volume: %.4f satuan volume
             Luas Permukaan: %.4f satuan luas
             """,
-
             getNama(),
-            getWarna(),
-
             sumbuX,
             sumbuY,
             sumbuZ,
-
             volume,
             luasPermukaan
         );

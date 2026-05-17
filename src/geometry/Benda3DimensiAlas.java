@@ -7,13 +7,9 @@ package geometry;
 public abstract class Benda3DimensiAlas extends Benda3Dimensi {
     protected Benda2Dimensi alas;
 
-    public Benda3DimensiAlas(String nama, String warna, Benda2Dimensi alas) {
-        super(nama, warna);
-        this.alas = alas;
-    }
-
     public Benda3DimensiAlas(String nama, Benda2Dimensi alas) {
-        this(nama, "Putih", alas);
+        super(nama);
+        this.alas = alas;
     }
 
     public synchronized Benda2Dimensi getAlas() {

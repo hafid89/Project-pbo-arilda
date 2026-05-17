@@ -798,7 +798,7 @@ public class GeometryGUI implements ActionListener {
         menuBar.add(viewMenu);
         menuBar.add(historyMenu);
         JMenu toolsMenu = new JMenu("Tools");
-        JMenuItem runDemoItem = new JMenuItem("Run Parallel Demo");
+        JMenuItem runDemoItem = new JMenuItem("Run Multithreading Demo");
         runDemoItem.addActionListener(e -> {
             // Run demo in background so UI stays responsive
             new Thread(() -> geometry.MultithreadingGeometryDemo.main(new String[0])).start();

@@ -20,7 +20,7 @@ public class Juring extends Benda3Dimensi {
                   double sudut,
                   double tinggi) {
 
-        super("Prisma Juring", "Orange");
+        super("Prisma Juring");
 
         this.jariJari = jariJari;
         this.sudut = sudut;
@@ -86,8 +86,6 @@ public class Juring extends Benda3Dimensi {
 
         return String.format("""
             === %s ===
-            Warna: %s
-
             Jari-jari: %.4f
             Sudut: %.4f rad (%.2f°)
             Tinggi: %.4f
@@ -97,7 +95,6 @@ public class Juring extends Benda3Dimensi {
             """,
 
             getNama(),
-            getWarna(),
 
             jariJari,
             sudut,

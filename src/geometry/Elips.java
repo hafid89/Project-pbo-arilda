@@ -21,15 +21,7 @@ public class Elips extends Benda2Dimensi {
     }
     
     public Elips(double sumbuPanjang, double sumbuPendek) {
-        super("Elips", "Biru");
-        this.sumbuPanjang = sumbuPanjang;
-        this.sumbuPendek = sumbuPendek;
-        hitungLuas();
-        hitungKeliling();
-    }
-    
-    public Elips(double sumbuPanjang, double sumbuPendek, String warna) {
-        super("Elips", warna);
+        super("Elips");
         this.sumbuPanjang = sumbuPanjang;
         this.sumbuPendek = sumbuPendek;
         hitungLuas();
@@ -72,8 +64,6 @@ public class Elips extends Benda2Dimensi {
     
     @Override
     public double hitungKeliling() {
-        // Rumus pendekatan Ramanujan untuk keliling elips
-        // Akurasi sangat tinggi (error < 0.01%)
         double a = sumbuPanjang;
         double b = sumbuPendek;
         
@@ -114,13 +104,12 @@ public class Elips extends Benda2Dimensi {
     public String info() {
         return String.format("""
             === %s ===
-            Warna: %s
             Sumbu Panjang (a): %.4f
             Sumbu Pendek (b): %.4f
             Luas: %.4f satuan luas
             Keliling: %.4f satuan panjang
             Eksentrisitas: %.4f
-            """, getNama(), getWarna(), sumbuPanjang, sumbuPendek, luas, keliling, hitungEksentrisitas());
+            """, getNama(), sumbuPanjang, sumbuPendek, luas, keliling, hitungEksentrisitas());
     }
     
     public String toCSVFormat() {

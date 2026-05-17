@@ -9,10 +9,6 @@ public abstract class Benda3Dimensi extends BendaGeometri implements VolumeCalcu
     protected double volume;
     protected double luasPermukaan;
     
-    public Benda3Dimensi(String nama, String warna) {
-        super(nama, warna);
-    }
-    
     public Benda3Dimensi(String nama) {
         super(nama);
     }
@@ -41,9 +37,8 @@ public abstract class Benda3Dimensi extends BendaGeometri implements VolumeCalcu
     public String info() {
         return String.format("""
             === %s ===
-            Warna: %s
             Volume: %.4f satuan volume
             Luas Permukaan: %.4f satuan luas
-            """, getNama(), getWarna(), volume, luasPermukaan);
+            """, getNama(), volume, luasPermukaan);
     }
 }

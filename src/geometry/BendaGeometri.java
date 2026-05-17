@@ -15,23 +15,17 @@ public abstract class BendaGeometri implements Runnable {
     
     // Encapsulation - Attribute dengan private modifier
     private String nama;
-    private String warna;
     private static int totalObjek = 0;
     private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     
     // Constructor overloading
     public BendaGeometri() {
-        this("Benda Geometri", "Putih");
+        this("Benda Geometri");
     }
     
     public BendaGeometri(String nama) {
-        this(nama, "Putih");
-    }
-    
-    public BendaGeometri(String nama, String warna) {
         this.nama = nama;
-        this.warna = warna;
         incrementTotalObjek();
     }
     
@@ -48,13 +42,6 @@ public abstract class BendaGeometri implements Runnable {
         this.nama = nama;
     }
     
-    public synchronized String getWarna() {
-        return warna;
-    }
-    
-    public synchronized void setWarna(String warna) {
-        this.warna = warna;
-    }
     
     public static synchronized int getTotalObjek() {
         return totalObjek;
