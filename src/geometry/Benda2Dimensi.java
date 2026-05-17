@@ -13,7 +13,6 @@ public abstract class Benda2Dimensi extends BendaGeometri {
     protected double luas;
     protected double keliling;
     
-    
     public Benda2Dimensi(String nama) {
         super(nama);
     }

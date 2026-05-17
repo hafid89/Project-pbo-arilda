@@ -33,6 +33,7 @@ public class Elips extends Benda2Dimensi {
         return sumbuPanjang;
     }
     
+    // setter 
     public void setSumbuPanjang(double sumbuPanjang) throws GeometryException {
         if (sumbuPanjang <= 0) {
             throw new GeometryException("Sumbu panjang harus > 0", GeometryException.NEGATIVE_VALUE);

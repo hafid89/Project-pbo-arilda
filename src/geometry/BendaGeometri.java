@@ -14,7 +14,7 @@ import java.util.concurrent.Future;
 public abstract class BendaGeometri implements Runnable {
     
     // Encapsulation - Attribute dengan private modifier
-    private String nama;
+    private String nama;  // hiding information
     private static int totalObjek = 0;
     private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
@@ -33,11 +33,13 @@ public abstract class BendaGeometri implements Runnable {
         totalObjek++;
     }
     
+    // getter
     // Encapsulation - Getter dan Setter (Information Hiding)
     public synchronized String getNama() {
         return nama;
     }
     
+    // setter
     public synchronized void setNama(String nama) {
         this.nama = nama;
     }

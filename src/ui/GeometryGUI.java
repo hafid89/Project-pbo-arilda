@@ -9,6 +9,8 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * GUI Utama Aplikasi Perhitungan Geometri
@@ -804,6 +806,11 @@ public class GeometryGUI implements ActionListener {
             new Thread(() -> geometry.MultithreadingGeometryDemo.main(new String[0])).start();
         });
         toolsMenu.add(runDemoItem);
+        
+        JMenuItem polyDemoItem = new JMenuItem("Demo Polymorphism");
+        polyDemoItem.addActionListener(e -> demonstratePolymorphism());
+        toolsMenu.add(polyDemoItem);
+        
         menuBar.add(toolsMenu);
         menuBar.add(helpMenu);
 
@@ -1071,6 +1078,65 @@ public class GeometryGUI implements ActionListener {
 
         System.setOut(new PrintStream(out, true));
         System.setErr(new PrintStream(out, true));
+    }
+
+    private void demonstratePolymorphism() {
+        resultArea.setText("");
+        statusLabel.setText("Mendemonstrasikan Polimorfisme Runtime...");
+        
+        StringBuilder output = new StringBuilder();
+        output.append("=== DEMONSTRASI POLIMORFISME RUNTIME ===\n");
+        
+        List<BendaGeometri> shapesCollection = new ArrayList<>();
+        
+        // Menambahkan berbagai ACTUAL TYPE ke list yang bertipe BendaGeometri
+        output.append("[1] Membuat berbagai bentuk geometri:\n");
+        output.append("    ✓ Elips (2D)\n");
+        BendaGeometri Benda2D = new Elips(5.0, 3.0);
+        shapesCollection.add(Benda2D);
+        
+        output.append("    ✓ KerucutElips (3D)\n");
+        BendaGeometri Benda3D = new KerucutElips(4.0, 2.0, 6.0);
+        shapesCollection.add(Benda3D);
+        
+        output.append("    ✓ TabungElips (3D)\n");
+        BendaGeometri Benda3DTabung = new TabungElips(3.5, 2.5, 8.0);
+        shapesCollection.add(Benda3DTabung);
+        
+        output.append("    ✓ BolaElips (3D)\n");
+        BendaGeometri Benda3DBola = new BolaElips(4.0, 3.0, 2.0);
+        shapesCollection.add(Benda3DBola);
+        
+        output.append("    ✓ Juring (3D)\n");
+        BendaGeometri Benda3DJuring = new Juring(3.0, Math.PI/3, 5.0);
+        shapesCollection.add(Benda3DJuring);
+        
+        output.append("    ✓ Tembereng (3D)\n");
+        BendaGeometri Benda3DTembereng = new Tembereng(2.0, 5.0);
+        shapesCollection.add(Benda3DTembereng);
+        
+        output.append("    ✓ CincinElips (3D)\n");
+        BendaGeometri Benda3DCincin = new CincinElips(5.0, 2.0, 1.0);
+        shapesCollection.add(Benda3DCincin);
+        
+        output.append("\n[2] Semua objek disimpan dalam List<BendaGeometri> (REFERENCE TYPE)\n");
+        output.append("    dengan ACTUAL TYPE yang berbeda-beda\n\n");
+        
+        output.append("[3] Memanggil method info() yang SAMA untuk setiap shape:\n\n");
+        
+        int index = 1;
+        for (BendaGeometri shape : shapesCollection) {
+            // ← POLIMORFISME! Memanggil method yang sama pada tipe berbeda
+            output.append("───────────────────────────────────────────────────────────────\n");
+            output.append("Geometry Shape #").append(index).append(" (Tipe Geometri: ")
+                  .append(shape.getClass().getSimpleName()).append(")\n");
+            output.append("───────────────────────────────────────────────────────────────\n");
+            output.append(shape.info()).append("\n");
+            index++;
+        }
+        
+        resultArea.setText(output.toString());
+        statusLabel.setText("Demo Polimorfisme selesai! Lihat hasil di atas.");
     }
 
     private void showError(String message) {
