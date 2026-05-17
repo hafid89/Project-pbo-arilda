@@ -28,6 +28,7 @@ public class GeometryGUI implements ActionListener {
     private JTextField tfSumbuX, tfSumbuY, tfSumbuZ;
     private JTextField tfSudut, tfRadiusBola;
     private JCheckBox cbUseElipsBaseForKerucut, cbUseElipsBaseForKerucutTerp, cbUseElipsBaseForTabung;
+    // Opsi UI: jika dipilih, gunakan API per-shape async/future
     private JCheckBox cbUseShapeThreading;
 
     private GeometryCalculator calculator;
@@ -135,61 +136,59 @@ public class GeometryGUI implements ActionListener {
     }
 
     private JPanel create2DPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+    JPanel panel = new JPanel(new GridBagLayout());
+    panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(5, 5, 5, 5);
+    gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        panel.add(new JLabel("Sumbu Panjang (a):"), gbc);
-        gbc.gridx = 1;
-        tfSumbuPanjang = new JTextField(10);
-        panel.add(tfSumbuPanjang, gbc);
+    // Baris 0: Sumbu Panjang
+    gbc.gridx = 0; gbc.gridy = 0;
+    gbc.weightx = 0;  // label tidak butuh weight
+    panel.add(new JLabel("Sumbu Panjang (a):"), gbc);
+    gbc.gridx = 1;
+    gbc.weightx = 1;  // textfield mengambil ruang horizontal
+    tfSumbuPanjang = new JTextField(10);
+    panel.add(tfSumbuPanjang, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        panel.add(new JLabel("Sumbu Pendek (b):"), gbc);
-        gbc.gridx = 1;
-        tfSumbuPendek = new JTextField(10);
-        panel.add(tfSumbuPendek, gbc);
+    // Baris 1: Sumbu Pendek
+    gbc.gridx = 0; gbc.gridy = 1;
+    gbc.weightx = 0;
+    panel.add(new JLabel("Sumbu Pendek (b):"), gbc);
+    gbc.gridx = 1;
+    gbc.weightx = 1;
+    tfSumbuPendek = new JTextField(10);
+    panel.add(tfSumbuPendek, gbc);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton btnHitung = new JButton("Hitung");
-        JButton btnReset = new JButton("Reset");
+    // Baris 2: Tombol
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+    JButton btnHitung = new JButton("Hitung");
+    JButton btnReset = new JButton("Reset");
+    btnHitung.addActionListener(e -> calculateElips());
+    btnReset.addActionListener(e -> {
+        tfSumbuPanjang.setText("");
+        tfSumbuPendek.setText("");
+    });
+    buttonPanel.add(btnHitung);
+    buttonPanel.add(btnReset);
 
-        btnHitung.addActionListener(e -> calculateElips());
-        btnReset.addActionListener(e -> {
-            tfSumbuPanjang.setText("");
-            tfSumbuPendek.setText("");
-        });
+    gbc.gridx = 0; gbc.gridy = 2;
+    gbc.gridwidth = 2;
+    gbc.weighty = 0;  // tidak makan ruang vertikal ekstra
+    panel.add(buttonPanel, gbc);
 
-        btnHitung.setBackground(new Color(56, 130, 242));
-        btnHitung.setForeground(Color.BLACK);
-        btnHitung.setFocusPainted(false);
+    // Baris 3: Info Panel - PERBAIKAN: tambah weighty
+    JPanel infoPanel = createInfoPanel("Elips",
+        "Rumus:\n• Luas = π × a × b\n• Keliling ≈ π × [3(a+b) - √((3a+b)(a+3b))]",
+        "Keterangan:\na = sumbu panjang\nb = sumbu pendek");
 
-        btnReset.setBackground(new Color(220, 53, 69));
-        btnReset.setForeground(Color.BLACK);
-        btnReset.setFocusPainted(false);
+    gbc.gridy = 3;
+    gbc.weighty = 1.0;     // ← INI PENTING: beri ruang vertikal
+    gbc.fill = GridBagConstraints.BOTH;  // ← biar mengisi penuh
+    panel.add(infoPanel, gbc);
 
-        buttonPanel.add(btnHitung);
-        buttonPanel.add(btnReset);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        panel.add(buttonPanel, gbc);
-
-        JPanel infoPanel = createInfoPanel("Elips",
-                "Rumus:\n• Luas = π × a × b\n• Keliling ≈ π × [3(a+b) - √((3a+b)(a+3b))]",
-                "Keterangan:\na = sumbu panjang\nb = sumbu pendek");
-
-        gbc.gridy = 3;
-        panel.add(infoPanel, gbc);
-
-        return panel;
-    }
+    return panel;
+}
 
     private JPanel create3DLimasPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
@@ -801,6 +800,7 @@ public class GeometryGUI implements ActionListener {
         JMenuItem runDemoItem = new JMenuItem("Run Parallel Demo");
         runDemoItem.addActionListener(e -> {
             // Run demo in background so UI stays responsive
+            // Jalankan demo multithreading di thread terpisah agar GUI tidak freeze
             new Thread(() -> geometry.MultithreadingGeometryDemo.main(new String[0])).start();
         });
         toolsMenu.add(runDemoItem);

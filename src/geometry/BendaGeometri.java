@@ -11,6 +11,12 @@ import java.util.concurrent.Future;
  * Abstract Class - Demonstrasi Abstract Class
  * Kelas induk abstrak untuk semua benda geometri
  */
+// OOP notes:
+// - Abstraksi: mendefinisikan kontrak umum untuk semua bentuk.
+// - Enkapsulasi: atribut `nama` dan `warna` bersifat private, diakses lewat getter/setter.
+// - Pewarisan: class ini diwarisi oleh Benda2Dimensi dan Benda3Dimensi.
+// - Concurrency: mengimplementasikan `Runnable` sehingga setiap objek dapat dijalankan di thread.
+// - Thread pool: menggunakan shared ExecutorService (`newCachedThreadPool()`) untuk menjalankan tugas secara asinkron.
 public abstract class BendaGeometri implements Runnable {
     
     // Encapsulation - Attribute dengan private modifier
@@ -67,6 +73,8 @@ public abstract class BendaGeometri implements Runnable {
     
     @Override
     public final void run() {
+        // run() adalah titik masuk saat objek dijalankan di thread.
+        // Di sini dilakukan perhitungan yang membutuhkan sinkronisasi pada state objek.
         String namaShape = getNama();
         log(String.format("%s: mulai menghitung...", namaShape));
         try {
@@ -78,6 +86,7 @@ public abstract class BendaGeometri implements Runnable {
             return;
         }
 
+        // Sinkronisasi mencegah kondisi race saat beberapa thread mengakses state objek.
         synchronized (this) {
             double luas = hitungLuas();
             double keliling = hitungKeliling();
@@ -93,10 +102,12 @@ public abstract class BendaGeometri implements Runnable {
     }
     
     public void calculateAsync() {
+        // Jalankan objek ini secara asinkron pada shared executor
         EXECUTOR.execute(this);
     }
     
     public Future<Double> calculateWithFuture() {
+        // Mengembalikan Future sehingga pemanggil dapat menunggu atau membatalkan tugas
         return EXECUTOR.submit(() -> {
             run();
             if (this instanceof VolumeCalculable) {

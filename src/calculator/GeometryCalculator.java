@@ -10,6 +10,11 @@ import javax.swing.SwingUtilities;
  * Kelas untuk kalkulasi geometri dengan dukungan multithreading
  * Demonstrasi Multithreading
  */
+// Concurrency notes:
+// - Menggunakan `Thread` sendiri untuk perhitungan asinkron agar UI tidak terblokir.
+// - Menggunakan `volatile` + `synchronized` untuk state `isCalculating` dan `history`.
+// - Menangani interrupt untuk pembatalan perhitungan.
+// - Update UI aman dengan `SwingUtilities.invokeLater` dari background thread.
 public class GeometryCalculator {
     
     private List<CalculationRecord> history;
@@ -76,10 +81,12 @@ public class GeometryCalculator {
             System.out.printf("[%tT] [Calculator] Perhitungan baru untuk %s meng-interrupt %s%n", new Date(), shape.getNama(), prevName);
         }
 
+        // Jalankan kalkulasi di thread terpisah; interrupt sebelumnya jika masih berjalan
         calculationThread = new Thread(() -> {
             isCalculating = true;
             
             try {
+                // Simulasi progres; update UI lewat SwingUtilities agar thread UI aman
                 for (int i = 0; i <= 100; i += 20) {
                     Thread.sleep(50);
                     if (callback != null) {

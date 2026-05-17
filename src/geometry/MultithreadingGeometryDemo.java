@@ -8,6 +8,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+// Demo penggunaan multithreading pada koleksi objek geometri.
+// Menunjukkan konsep berikut:
+// - pembuatan thread pool dengan ExecutorService
+// - eksekusi Runnable dan Callable
+// - penggunaan Future untuk menunggu hasil
+// - pembatalan tugas dengan interrupt/cancel
+// - perbandingan waktu eksekusi sekuensial vs paralel
 public class MultithreadingGeometryDemo {
 
     public static void main(String[] args) {
@@ -27,6 +34,7 @@ public class MultithreadingGeometryDemo {
         groups.add(List.of(new Tembereng(1.0, 2.0), new Tembereng(1.5, 2.5)));
         groups.add(List.of(new CincinElips(3.5, 1.2, 1.0), new CincinElips(4.0, 1.5, 1.2)));
 
+        // Pool fixed berdasarkan jumlah core untuk memanfaatkan paralelisme CPU
         ExecutorService pool = Executors.newFixedThreadPool(cores);
         List<Future<?>> previousGroupFutures = null;
 
@@ -46,10 +54,12 @@ public class MultithreadingGeometryDemo {
                 }
 
                 List<Future<?>> currentFutures = new ArrayList<>();
+                // Submit masing-masing shape sebagai tugas terpisah
                 for (Runnable shape : group) {
                     currentFutures.add(pool.submit(shape));
                 }
 
+                // Tunda sebelum meng-interrupt group sebelumnya untuk melihat efek interupsi
                 try {
                     Thread.sleep(2000); // delay 2 seconds before next group interrupt
                 } catch (InterruptedException e) {
@@ -95,6 +105,7 @@ public class MultithreadingGeometryDemo {
         long sequentialTime = sequentialEnd - sequentialStart;
         System.out.printf("Sequential execution for %d elips objects: %d ms%n", count, sequentialTime);
 
+        // Perbandingan waktu sekuensial vs paralel
         ExecutorService parallelPool = Executors.newFixedThreadPool(cores);
         List<Future<Double>> futures = new ArrayList<>(count);
 

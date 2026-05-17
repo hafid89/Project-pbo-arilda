@@ -9,6 +9,10 @@ import java.io.IOException;
  * Kelas Elips - Benda 2 Dimensi
  * Demonstrasi Inheritance, Overriding, dan Encapsulation
  */
+// Catatan OOP:
+// - Inheritance: extends Benda2Dimensi
+// - Enkapsulasi: field private `sumbuPanjang` dan `sumbuPendek` dengan getter/setter
+// - Overriding: implementasi spesifik `hitungLuas()` dan `hitungKeliling()`
 public class Elips extends Benda2Dimensi {
     
     private double sumbuPanjang;  // sumbu mayor (a)
@@ -42,10 +46,12 @@ public class Elips extends Benda2Dimensi {
     }
     
     public void setSumbuPanjang(double sumbuPanjang) throws GeometryException {
+        // Validasi input — contoh penggunaan exception custom untuk menjaga invariant objek
         if (sumbuPanjang <= 0) {
             throw new GeometryException("Sumbu panjang harus > 0", GeometryException.NEGATIVE_VALUE);
         }
         this.sumbuPanjang = sumbuPanjang;
+        // Memperbarui state yang bergantung pada sumbu
         hitungLuas();
         hitungKeliling();
     }
@@ -78,6 +84,7 @@ public class Elips extends Benda2Dimensi {
         double b = sumbuPendek;
         
         // Kasus khusus: jika berbentuk lingkaran (a == b)
+        // Jika kedua sumbu sama, bentuknya lingkaran — gunakan rumus lingkaran
         if (Math.abs(a - b) < 1e-9) {
             keliling = 2 * PI * a;
             return keliling;

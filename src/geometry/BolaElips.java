@@ -9,6 +9,10 @@ package geometry;
  * - Method Overloading
  * - Overriding
  */
+// Catatan OOP:
+// - Constructor overloading: beberapa cara membuat objek dengan parameter berbeda
+// - Method overloading: `hitungVolume()` dengan parameter berbeda
+// - Overriding: implementasi `hitungLuasPermukaan()` khusus ellipsoid
 public class BolaElips extends Benda3Dimensi {
 
     // =========================
