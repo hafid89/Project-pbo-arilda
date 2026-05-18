@@ -17,6 +17,12 @@ Dokumen ini merangkum lokasi implementasi OOP (enkapsulasi, abstraksi, pewarisan
 - **Polimorfisme**: overriding dan pemanggilan lewat tipe umum
   - Override `hitungLuas()`/`hitungKeliling()` di `Elips`: [src/geometry/Elips.java](src/geometry/Elips.java#L67-L74)
   - Penggunaan `instanceof` dan pemanggilan berbeda di runtime (`BendaGeometri.run()`): [src/geometry/BendaGeometri.java](src/geometry/BendaGeometri.java#L81-L89)
+  - Contoh gaya `Parent p = new Child();` ada di GUI melalui `calculateShape(BendaGeometri shape, ...)`.
+    - `calculateElips()` membuat `Elips elips = new Elips(a, b);`
+    - `calculateTabungElips()` membuat `TabungElips tabung = new TabungElips(alas, t);`
+    - `calculateBolaElips()` membuat `BolaElips bola = new BolaElips(a, b, c);`
+    Semua objek tersebut diperlakukan sebagai `BendaGeometri` ketika dikirim ke `calculateShape()`.
+  - Ada demo khusus `ui.PolymorphismDemo` yang menampilkan contoh `EkspresiWajah objGembira = new WajahGembira();` dan mencetak hasilnya ke terminal.
 
 - **Interface / Kontrak**: `VolumeCalculable`
   - `src/geometry/VolumeCalculable.java` dan implementasi di `Benda3Dimensi`/kelas 3D: [src/geometry/VolumeCalculable.java](src/geometry/VolumeCalculable.java#L1-L5)

@@ -28,94 +28,42 @@ public class GeometryGUI implements ActionListener {
     private JTextField tfSumbuX, tfSumbuY, tfSumbuZ;
     private JTextField tfSudut, tfRadiusBola;
     private JCheckBox cbUseElipsBaseForKerucut, cbUseElipsBaseForKerucutTerp, cbUseElipsBaseForTabung;
-    // Opsi UI: jika dipilih, gunakan API per-shape async/future
-    private JCheckBox cbUseShapeThreading;
-
-    private GeometryCalculator calculator;
-
-    private JMenuItem exitItem, exportItem, aboutItem, openHistoryItem, clearHistoryItem;
-    private JCheckBoxMenuItem showStatusItem;
-
+    // History UI model
     private DefaultListModel<String> historyListModel;
     private JList<String> historyList;
+    // Menu items (declared here so actionPerformed can access them)
+    private JMenuItem exitItem, exportItem, clearHistoryItem, openHistoryItem, aboutItem;
+    private JCheckBoxMenuItem showStatusItem;
+    // Optional per-shape threading checkbox (may be present in UI)
+    private JCheckBox cbUseShapeThreading;
+    // Calculator backend
+    private GeometryCalculator calculator;
+    // Opsi UI: jika dipilih, gunakan API per-shape async/future
 
     public GeometryGUI() {
-        calculator = new GeometryCalculator();
-        initComponents();
-        setupMenu();
-        frame.setVisible(true);
-    }
-
-    private void initComponents() {
-        frame = new JFrame("Aplikasi Perhitungan Benda Geometri");
-        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        frame.setSize(950, 750);
+        frame = new JFrame("Geometry Calculator");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1000, 700);
         frame.setLocationRelativeTo(null);
-        frame.setLayout(new BorderLayout());
 
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        UIManager.put("Button.background", new Color(56, 130, 242));
-        UIManager.put("Button.foreground", Color.BLACK);
-        UIManager.put("Button.font", new Font("Segoe UI", Font.PLAIN, 12));
-        UIManager.put("TabbedPane.background", new Color(245, 248, 255));
-        UIManager.put("TabbedPane.selected", new Color(220, 235, 255));
-        UIManager.put("Panel.background", new Color(248, 251, 255));
-        UIManager.put("TextField.background", new Color(255, 255, 255));
-        UIManager.put("TextArea.background", new Color(250, 250, 255));
-
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(26, 115, 232));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(14, 18, 14, 18));
-
-        JLabel titleLabel = new JLabel("Geometry Calculator");
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setFont(new Font("Segoe UI Semibold", Font.BOLD, 24));
-        JLabel subtitle = new JLabel("Aplikasi Perhitungan Benda Geometri 2D & 3D dengan dasar Elips");
-        subtitle.setForeground(new Color(220, 235, 255));
-        subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-
-        headerPanel.add(titleLabel, BorderLayout.NORTH);
-        headerPanel.add(subtitle, BorderLayout.SOUTH);
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        // Backend calculator instance (used by history and async calculations)
+        calculator = new GeometryCalculator();
 
         tabbedPane = new JTabbedPane();
-        tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        tabbedPane.setBackground(new Color(245, 248, 255));
-        tabbedPane.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-
-        tabbedPane.addTab("Elips (2D)", create2DPanel());
-        tabbedPane.addTab("Kerucut Elips", create3DLimasPanel());
+        tabbedPane.addTab("Elips", create2DPanel());
+        tabbedPane.addTab("Kerucut", create3DLimasPanel());
         tabbedPane.addTab("Kerucut Terpancung", createKerucutTerpancungPanel());
-        tabbedPane.addTab("Tabung Elips", createTabungElipsPanel());
-        tabbedPane.addTab("Bola Elips", createBolaElipsPanel());
+        tabbedPane.addTab("Tabung", createTabungElipsPanel());
+        tabbedPane.addTab("Bola", createBolaElipsPanel());
         tabbedPane.addTab("Juring", createJuringPanel());
         tabbedPane.addTab("Tembereng", createTemberengPanel());
-        tabbedPane.addTab("Cincin Elips", createCincinPanel());
+        tabbedPane.addTab("Cincin", createCincinPanel());
+        tabbedPane.addTab("Polymorphism", createPolymorphismPanel());
+        tabbedPane.addTab("Polymorphism Demo", createPolymorphismDemoPanel());
+        tabbedPane.addTab("History", createHistoryPanel());
 
-        mainPanel.add(tabbedPane, BorderLayout.CENTER);
-
-        JPanel bottomPanel = new JPanel(new BorderLayout(5, 5));
-        bottomPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-        progressBar = new JProgressBar(0, 100);
-        progressBar.setStringPainted(true);
-        progressBar.setVisible(false);
-
-        statusLabel = new JLabel("Siap melakukan perhitungan");
-        statusLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
-
-        bottomPanel.add(statusLabel, BorderLayout.WEST);
-        bottomPanel.add(progressBar, BorderLayout.CENTER);
-        // Option to use shape-level threading (calls calculateAsync / calculateWithFuture on shapes)
-        cbUseShapeThreading = new JCheckBox("Use shape-level threading", false);
-        bottomPanel.add(cbUseShapeThreading, BorderLayout.EAST);
-
+        // Result area panel
         JPanel resultPanel = new JPanel(new BorderLayout());
-        resultPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(153, 180, 255)), "Hasil Perhitungan"),
-                BorderFactory.createEmptyBorder(8, 8, 8, 8)));
         resultPanel.setBackground(new Color(255, 255, 255));
 
         resultArea = new JTextArea(10, 50);
@@ -129,10 +77,21 @@ public class GeometryGUI implements ActionListener {
         JScrollPane resultScroll = new JScrollPane(resultArea);
         resultPanel.add(resultScroll, BorderLayout.CENTER);
 
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.add(tabbedPane, BorderLayout.CENTER);
         mainPanel.add(resultPanel, BorderLayout.SOUTH);
+
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        progressBar = new JProgressBar();
+        progressBar.setVisible(false);
+        bottomPanel.add(progressBar, BorderLayout.CENTER);
+        statusLabel = new JLabel("Siap melakukan perhitungan");
+        bottomPanel.add(statusLabel, BorderLayout.SOUTH);
 
         frame.add(mainPanel, BorderLayout.CENTER);
         frame.add(bottomPanel, BorderLayout.SOUTH);
+
+        frame.setVisible(true);
     }
 
     private JPanel create2DPanel() {
@@ -489,6 +448,128 @@ public class GeometryGUI implements ActionListener {
         return panel;
     }
 
+    private JPanel createPolymorphismDemoPanel() {
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JTextArea infoArea = new JTextArea();
+        infoArea.setEditable(false);
+        infoArea.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        infoArea.setBackground(new Color(245, 245, 255));
+        infoArea.setText("Polymorphism Demo\n\n" +
+                "Contoh ini dibuat sesuai project tetapi mengikuti konsep dosen:\n" +
+                "satu super class dapat merujuk ke banyak subclass.\n\n" +
+                "Objek yang digunakan:\n" +
+                "EkspresiWajah objEkspresi = new EkspresiWajah();\n" +
+                "EkspresiWajah objGembira = new WajahGembira();\n" +
+                "EkspresiWajah objSedih = new WajahSedih();\n" +
+                "EkspresiWajah objMarah = new WajahMarah();\n\n" +
+                "Semua objek tersebut diteruskan ke method yang sama,\n" +
+                "tetapi hasil respons() berbeda sesuai subclass.");
+
+        JButton btnRun = new JButton("Run Polymorphism Demo");
+        btnRun.setBackground(new Color(56, 130, 242));
+        btnRun.setForeground(Color.WHITE);
+        btnRun.setFocusPainted(false);
+        btnRun.addActionListener(e -> runPolymorphismDemo());
+
+        JPanel topPanel = new JPanel(new BorderLayout(10, 10));
+        topPanel.add(btnRun, BorderLayout.WEST);
+        topPanel.add(new JLabel("Output akan muncul di panel Hasil Perhitungan."), BorderLayout.CENTER);
+
+        panel.add(topPanel, BorderLayout.NORTH);
+        panel.add(new JScrollPane(infoArea), BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    private void runPolymorphismDemo() {
+        resultArea.setText("");
+        statusLabel.setText("Menjalankan demo polimorfisme...");
+        progressBar.setVisible(true);
+        progressBar.setIndeterminate(true);
+
+        new Thread(() -> {
+            try {
+                System.out.println("=== POLYMORPHISM DEMO ===");
+                System.out.println("Sama seperti contoh dosen: Parent p = new Child();");
+                System.out.println();
+
+                EkspresiWajah objEkspresi = new EkspresiWajah();
+                EkspresiWajah objGembira = new WajahGembira();
+                EkspresiWajah objSedih = new WajahSedih();
+                EkspresiWajah objMarah = new WajahMarah();
+
+                EkspresiWajah[] arrEkspresi = new EkspresiWajah[4];
+                arrEkspresi[0] = objEkspresi;
+                arrEkspresi[1] = objGembira;
+                arrEkspresi[2] = objSedih;
+                arrEkspresi[3] = objMarah;
+
+                for (int i = 0; i < arrEkspresi.length; i++) {
+                    System.out.printf("Ekspresi[%d]: %s%n", i, arrEkspresi[i].respons());
+                }
+
+                System.out.println();
+                System.out.println("Penjelasan:");
+                System.out.println("- Semua variabel bertipe EkspresiWajah.");
+                System.out.println("- Setiap objek memiliki perilaku respons() masing-masing.");
+                System.out.println("- Ini adalah contoh polymorphism: satu tipe, banyak bentuk.");
+            } finally {
+                SwingUtilities.invokeLater(() -> {
+                    progressBar.setVisible(false);
+                    progressBar.setIndeterminate(false);
+                    statusLabel.setText("Demo polimorfisme selesai.");
+                });
+            }
+        }).start();
+    }
+
+    private static class EkspresiWajah {
+        protected String nama;
+
+        public EkspresiWajah() {
+            this.nama = "Netral";
+        }
+
+        public String respons() {
+            return "Ekspresi " + nama;
+        }
+    }
+
+    private static class WajahGembira extends EkspresiWajah {
+        public WajahGembira() {
+            this.nama = "Gembira";
+        }
+
+        @Override
+        public String respons() {
+            return "Ekspresi " + nama + " :-)";
+        }
+    }
+
+    private static class WajahSedih extends EkspresiWajah {
+        public WajahSedih() {
+            this.nama = "Sedih";
+        }
+
+        @Override
+        public String respons() {
+            return "Ekspresi " + nama + " :-(";
+        }
+    }
+
+    private static class WajahMarah extends EkspresiWajah {
+        public WajahMarah() {
+            this.nama = "Marah";
+        }
+
+        @Override
+        public String respons() {
+            return "Ekspresi " + nama + " >:(";
+        }
+    }
+
     private JPanel createJuringPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
@@ -631,6 +712,96 @@ public class GeometryGUI implements ActionListener {
         gbc.gridy = 3;
         gbc.gridwidth = 2;
         panel.add(btnHitung, gbc);
+
+        return panel;
+    }
+
+    private JPanel createPolymorphismPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
+        JLabel desc = new JLabel("Demo Polimorfisme menggunakan objek `BendaGeometri`. Output muncul di panel hasil/terminal.");
+        panel.add(desc, gbc);
+
+        gbc.gridy = 1; gbc.gridwidth = 1;
+        JCheckBox cbParallel = new JCheckBox("Jalankan paralel (shape-level threading)", false);
+        panel.add(cbParallel, gbc);
+
+        gbc.gridx = 1;
+        JButton btnRun = new JButton("Run Polymorphism Demo");
+        btnRun.setBackground(new Color(56, 130, 242));
+        btnRun.setForeground(Color.BLACK);
+        btnRun.setFocusPainted(false);
+        panel.add(btnRun, gbc);
+
+        btnRun.addActionListener(e -> {
+            btnRun.setEnabled(false);
+            statusLabel.setText("Menjalankan demo polimorfisme...");
+
+            new Thread(() -> {
+                try {
+                    // Siapkan koleksi shapes sebagai BendaGeometri (polymorphism)
+                    java.util.List<BendaGeometri> shapes = java.util.List.of(
+                            new Elips(4.0, 2.0),
+                            new TabungElips(new Elips(3.0, 1.5), 4.0),
+                            new KerucutElips(4.0, 2.0, 5.0),
+                            new KerucutTerpancung(4.0, 2.0, 5.0, 1.0),
+                            new BolaElips(3.0, 2.0, 1.5),
+                            new Juring(2.5, Math.PI / 2.0, 1.0),
+                            new Tembereng(1.0, 2.0),
+                            new CincinElips(3.5, 1.2, 1.0)
+                    );
+
+                    System.out.println("=== POLYMORPHISM DEMO (BendaGeometri) ===");
+                    System.out.println("Menjalankan " + (cbParallel.isSelected() ? "paralel" : "sekuensial") + " untuk contoh shapes\n");
+
+                    if (cbParallel.isSelected()) {
+                        java.util.List<java.util.concurrent.Future<Double>> futures = new java.util.ArrayList<>();
+                        for (BendaGeometri s : shapes) {
+                            System.out.println("Submit: " + s.getNama());
+                            futures.add(s.calculateWithFuture());
+                        }
+
+                        for (int i = 0; i < shapes.size(); i++) {
+                            try {
+                                Double res = futures.get(i).get();
+                                BendaGeometri s = shapes.get(i);
+                                if (s instanceof VolumeCalculable) {
+                                    System.out.printf("Result - %s: volume=%.4f\n", s.getNama(), res);
+                                } else {
+                                    System.out.printf("Result - %s: luas=%.4f\n", s.getNama(), res);
+                                }
+                            } catch (Exception ex) {
+                                System.out.println("Task interrupted/failed: " + ex.getMessage());
+                            }
+                        }
+                    } else {
+                        for (BendaGeometri s : shapes) {
+                            System.out.println("Run: " + s.getNama());
+                            // memanggil method lewat tipe parent -> polymorphism
+                            if (s instanceof VolumeCalculable) {
+                                double v = ((VolumeCalculable) s).hitungVolume();
+                                System.out.printf("Result - %s: volume=%.4f\n", s.getNama(), v);
+                            } else {
+                                double lu = s.hitungLuas();
+                                System.out.printf("Result - %s: luas=%.4f\n", s.getNama(), lu);
+                            }
+                        }
+                    }
+
+                    System.out.println("=== DEMO SELESAI ===\n");
+                } finally {
+                    SwingUtilities.invokeLater(() -> {
+                        btnRun.setEnabled(true);
+                        statusLabel.setText("Siap melakukan perhitungan");
+                    });
+                }
+            }).start();
+        });
 
         return panel;
     }
@@ -797,12 +968,18 @@ public class GeometryGUI implements ActionListener {
         menuBar.add(viewMenu);
         menuBar.add(historyMenu);
         JMenu toolsMenu = new JMenu("Tools");
+        JMenuItem runPolymorphismItem = new JMenuItem("Run Polymorphism Demo");
+        runPolymorphismItem.addActionListener(e -> {
+            // Run the polymorphism demo (integrated) so output is visible in terminal
+            new Thread(() -> runPolymorphismDemo()).start();
+        });
         JMenuItem runDemoItem = new JMenuItem("Run Parallel Demo");
         runDemoItem.addActionListener(e -> {
             // Run demo in background so UI stays responsive
             // Jalankan demo multithreading di thread terpisah agar GUI tidak freeze
             new Thread(() -> geometry.MultithreadingGeometryDemo.main(new String[0])).start();
         });
+        toolsMenu.add(runPolymorphismItem);
         toolsMenu.add(runDemoItem);
         menuBar.add(toolsMenu);
         menuBar.add(helpMenu);
@@ -831,6 +1008,11 @@ public class GeometryGUI implements ActionListener {
     }
 
     private void calculateShape(BendaGeometri shape, String parameters, String label) {
+        // Contoh polimorfisme: variabel bertipe BendaGeometri dapat merujuk ke objek
+        // Elips, TabungElips, BolaElips, KerucutElips, KerucutTerpancung, Juring, Tembereng, CincinElips.
+        // Pada runtime, pemanggilan shape.info() dan shape.hitungLuas() akan menggunakan implementasi subclass yang benar.
+        // Ini mirip dengan contoh: Parent p1 = new Child1(); Parent p2 = new Child2();
+        // Semua diproses melalui tipe super class yang sama.
         // If user chose to use shape-level threading, use the shape's async/future APIs
         if (cbUseShapeThreading != null && cbUseShapeThreading.isSelected()) {
             resultArea.setText("");
