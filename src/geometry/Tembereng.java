@@ -4,25 +4,20 @@ package geometry;
  * Kelas Tembereng Bola - Benda 3 Dimensi
  * Contoh OOP dengan Encapsulation
  */
-public class Tembereng extends Benda3Dimensi {
+public class Tembereng extends BolaElips {
 
-    // =========================
-    // ENCAPSULATION (private)
-    // =========================
     private double tinggi;
     private double radiusBola;
 
     private static final double PI = Math.PI;
 
-    // =========================
-    // Constructor
-    // =========================
     public Tembereng() {
         this(0.5, 1.0);
     }
 
     public Tembereng(double tinggi, double radiusBola) {
-        super("Tembereng Bola", "Ungu");
+        super();
+        setNama("Tembereng Bola");
 
         // menggunakan setter agar tervalidasi
         setTinggi(tinggi);
@@ -32,11 +27,6 @@ public class Tembereng extends Benda3Dimensi {
         hitungLuasPermukaan();
     }
 
-    // =========================
-    // Getter dan Setter
-    // =========================
-
-    // Getter tinggi
     public double getTinggi() {
         return tinggi;
     }
@@ -66,16 +56,18 @@ public class Tembereng extends Benda3Dimensi {
         }
     }
 
-    // =========================
-    // Method Perhitungan
-    // =========================
-
     @Override
     public double hitungVolume() {
         volume = (PI * Math.pow(tinggi, 2) / 3)
                 * (3 * radiusBola - tinggi);
 
         return volume;
+    }
+
+    public Thread createThread() {
+        Thread thread = new Thread(this, getNama() + "-Thread");
+        thread.setDaemon(true);
+        return thread;
     }
 
     @Override
@@ -102,22 +94,17 @@ public class Tembereng extends Benda3Dimensi {
         return 2 * PI * radiusBola;
     }
 
-    // =========================
-    // Informasi Objek
-    // =========================
     @Override
     public String info() {
 
         return String.format("""
                 === %s ===
-                Warna: %s
                 Tinggi Tembereng: %.4f
                 Radius Bola: %.4f
                 Volume: %.4f satuan volume
                 Luas Permukaan: %.4f satuan luas
                 """,
                 getNama(),
-                getWarna(),
                 tinggi,
                 radiusBola,
                 volume,

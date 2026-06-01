@@ -10,24 +10,35 @@ public class KerucutTerpancung extends KerucutElips {
     
     private double jariJariAtas;
     private Elips alasAtas;
+    private boolean isInitialized;  // Flag untuk menandai objek sudah siap
     private static final double PI = Math.PI;
     
     public KerucutTerpancung() {
-        this(new Elips(), 1.0, 0.5);
+        this(1.0, 1.0, 1.0, 0.5);
     }
     
     public KerucutTerpancung(Elips alas, double tinggi, double jariJariAtas) {
-        super(alas, tinggi);
+        super(alas.getSumbuPanjang(), alas.getSumbuPendek(), tinggi);
+        this.isInitialized = false;  // Tandai belum siap
         this.jariJariAtas = jariJariAtas;
         this.alasAtas = new Elips(jariJariAtas, jariJariAtas);
         setNama("Kerucut Terpancung Alas Elips");
+        this.isInitialized = true;  // Tandai sudah siap
+        // Hitung ulang setelah semua properti siap
+        hitungVolume();
+        hitungLuasPermukaan();
     }
     
     public KerucutTerpancung(double sumbuPanjang, double sumbuPendek, double tinggi, double jariJariAtas) {
         super(sumbuPanjang, sumbuPendek, tinggi);
+        this.isInitialized = false;  // Tandai belum siap
         this.jariJariAtas = jariJariAtas;
         this.alasAtas = new Elips(jariJariAtas, jariJariAtas);
         setNama("Kerucut Terpancung Alas Elips");
+        this.isInitialized = true;  // Tandai sudah siap
+        // Hitung ulang setelah semua properti siap
+        hitungVolume();
+        hitungLuasPermukaan();
     }
     
     public double getJariJariAtas() {
@@ -38,6 +49,10 @@ public class KerucutTerpancung extends KerucutElips {
         if (jariJariAtas <= 0) {
             throw new GeometryException("Jari-jari atas harus > 0", GeometryException.NEGATIVE_VALUE);
         }
+        if (jariJariAtas >= Math.min(getAlas().getSumbuPanjang(), getAlas().getSumbuPendek())) {
+            throw new GeometryException("Jari-jari atas harus lebih kecil dari jari-jari alas", 
+                                       GeometryException.INVALID_INPUT);
+        }
         this.jariJariAtas = jariJariAtas;
         this.alasAtas = new Elips(jariJariAtas, jariJariAtas);
         hitungVolume();
@@ -46,19 +61,31 @@ public class KerucutTerpancung extends KerucutElips {
     
     @Override
     public double hitungVolume() {
-        double radiusBawah = (getAlas().getSumbuPanjang() + getAlas().getSumbuPendek()) / 2;
-        double radiusAtas = jariJariAtas;
-        volume = (1.0 / 3.0) * PI * getTinggi() * 
-                 (Math.pow(radiusBawah, 2) + radiusBawah * radiusAtas + Math.pow(radiusAtas, 2));
+        // Menggunakan rumus volume yang lebih akurat untuk kerucut terpancung dengan alas elips
+        double a1 = getSumbuPanjang();
+        double b1 = getSumbuPendek();
+        double a2 = jariJariAtas;
+        double b2 = jariJariAtas;
+        
+        // Volume frustum dengan penampang elips
+        // V = (π × h / 3) × (a1×b1 + a2×b2 + √(a1×b1×a2×b2))
+        double luasAlasBawah = a1 * b1;
+        double luasAlasAtas = a2 * b2;
+        double luasTengah = Math.sqrt(luasAlasBawah * luasAlasAtas);
+        
+        volume = (PI * getTinggi() / 3.0) * (luasAlasBawah + luasAlasAtas + luasTengah);
         return volume;
     }
     
     @Override
     public double hitungLuasPermukaan() {
-        if (alasAtas == null) {
-            throw new IllegalStateException("alasAtas belum diinisialisasi");
+        // Cek apakah objek sudah siap digunakan
+        if (!isInitialized || alasAtas == null) {
+            // Jika belum siap, kembalikan nilai yang sudah ada
+            return luasPermukaan;
         }
-        double luasAlasBawah = getAlas().hitungLuas();
+        
+        double luasAlasBawah = super.hitungLuas();
         double luasAlasAtas = alasAtas.hitungLuas();
         double luasSelimut = hitungLuasSelimutTerpancung();
         luasPermukaan = luasAlasBawah + luasAlasAtas + luasSelimut;
@@ -66,33 +93,71 @@ public class KerucutTerpancung extends KerucutElips {
     }
     
     public double hitungLuasSelimutTerpancung() {
-        double radiusBawah = (getAlas().getSumbuPanjang() + getAlas().getSumbuPendek()) / 2;
+        // Menggunakan radius efektif geometric mean untuk akurasi lebih baik
+        Elips alasBawah = getAlas();
+        double radiusBawah = Math.sqrt(alasBawah.getSumbuPanjang() * alasBawah.getSumbuPendek());
         double radiusAtas = jariJariAtas;
+        
+        // Garis pelukis (selimut)
         double s = Math.sqrt(Math.pow(getTinggi(), 2) + Math.pow(radiusBawah - radiusAtas, 2));
+        
+        // Luas selimut kerucut terpancung
         return PI * (radiusBawah + radiusAtas) * s;
     }
     
     public double hitungLuasAlasAtas() {
         if (alasAtas == null) {
-            throw new IllegalStateException("alasAtas belum diinisialisasi");
+            // Fallback jika alasAtas belum diinisialisasi
+            return PI * Math.pow(jariJariAtas, 2);
         }
         return alasAtas.hitungLuas();
     }
     
+    public double getRadiusEfektifBawah() {
+        Elips alasBawah = getAlas();
+        return Math.sqrt(alasBawah.getSumbuPanjang() * alasBawah.getSumbuPendek());
+    }
+    
+    public double getRadiusEfektifAtas() {
+        return jariJariAtas;
+    }
+    
     @Override
     public String info() {
-        double radiusBawah = (getAlas().getSumbuPanjang() + getAlas().getSumbuPendek()) / 2;
+        Elips alasBawah = getAlas();
+        double radiusEfektifBawah = getRadiusEfektifBawah();
+        double radiusEfektifAtas = jariJariAtas;
+        
         return String.format("""
             === %s ===
-            Warna: %s
-            Alas Bawah: a=%.4f, b=%.4f (R=%.4f)
-            Alas Atas: radius=%.4f
+            Alas Bawah: a=%.4f, b=%.4f (radius efektif=%.4f)
+            Alas Atas: radius=%.4f (luas=%.4f)
             Tinggi: %.4f
             Volume: %.4f satuan volume
             Luas Permukaan: %.4f satuan luas
+            Luas Selimut: %.4f satuan luas
+            Rasio (r_atas/r_bawah): %.4f
             """, 
-            getNama(), getWarna(),
-            getAlas().getSumbuPanjang(), getAlas().getSumbuPendek(), radiusBawah,
-            jariJariAtas, getTinggi(), volume, luasPermukaan);
+            getNama(),
+            alasBawah.getSumbuPanjang(), alasBawah.getSumbuPendek(), radiusEfektifBawah,
+            radiusEfektifAtas, hitungLuasAlasAtas(),
+            getTinggi(), volume, luasPermukaan, hitungLuasSelimutTerpancung(),
+            radiusEfektifAtas / radiusEfektifBawah);
+    }
+
+    public Thread createThread() {
+        Thread thread = new Thread(this, getNama() + "-Thread");
+        thread.setDaemon(true);
+        return thread;
+    }
+
+    // Method untuk validasi objek
+    public boolean isValid() {
+        return isInitialized && 
+               alasAtas != null && 
+               getAlas() != null && 
+               getTinggi() > 0 && 
+               jariJariAtas > 0 &&
+               jariJariAtas < Math.min(getAlas().getSumbuPanjang(), getAlas().getSumbuPendek());
     }
 }

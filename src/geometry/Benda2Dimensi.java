@@ -13,9 +13,6 @@ public abstract class Benda2Dimensi extends BendaGeometri {
     protected double luas;
     protected double keliling;
     
-    public Benda2Dimensi(String nama, String warna) {
-        super(nama, warna);
-    }
     
     public Benda2Dimensi(String nama) {
         super(nama);
@@ -27,11 +24,11 @@ public abstract class Benda2Dimensi extends BendaGeometri {
     @Override
     public abstract double hitungKeliling();
     
-    public double getLuas() {
+    public synchronized double getLuas() {
         return luas;
     }
     
-    public double getKeliling() {
+    public synchronized double getKeliling() {
         return keliling;
     }
     
@@ -42,16 +39,15 @@ public abstract class Benda2Dimensi extends BendaGeometri {
     }
     
     public String toCSVFormat() {
-        return String.format("%s,%s,%.4f,%.4f", getNama(), getWarna(), luas, keliling);
+        return String.format("%s,%.4f,%.4f", getNama(), luas, keliling);
     }
     
     @Override
     public String info() {
         return String.format("""
             === %s ===
-            Warna: %s
             Luas: %.4f satuan luas
             Keliling: %.4f satuan panjang
-            """, getNama(), getWarna(), luas, keliling);
+            """, getNama(), luas, keliling);
     }
 }

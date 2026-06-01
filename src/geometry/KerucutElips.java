@@ -3,58 +3,55 @@ package geometry;
 import exceptions.GeometryException;
 
 /**
- * Kelas Kerucut dengan alas elips - versi perbaikan (lebih akurat)
+ * Kelas Kerucut dengan alas elips - Benda 3 Dimensi (Limas)
+ * Menggunakan rumus garis pelukis: s = sqrt(t^2 + (a^2 + b^2)/2)
  */
-public class KerucutElips extends Benda3DimensiAlas {
+public class KerucutElips extends Elips {
     
     private double tinggi;
     private double garisPelukis;
-    private double volume;
-    private double luasPermukaan;
     private static final double PI = Math.PI;
     
-    // ================== CONSTRUCTOR ==================
-    
+    // Constructor overloading
     public KerucutElips() {
-        this(new Elips(), 1.0);
+        this(1.0, 1.0, 1.0);
     }
     
     public KerucutElips(Elips alas, double tinggi) {
-        super("Kerucut Alas Elips", "Merah", alas);
+        super(alas.getSumbuPanjang(), alas.getSumbuPendek());
+        setNama("Kerucut Alas Elips");
         this.tinggi = tinggi;
-        updateSemua();
+        updateAll();
     }
     
     public KerucutElips(double sumbuPanjang, double sumbuPendek, double tinggi) {
-        this(new Elips(sumbuPanjang, sumbuPendek), tinggi);
-    }
-    
-    public KerucutElips(double sumbuPanjang, double sumbuPendek, double tinggi, String warna) {
-        super("Kerucut Alas Elips", warna, new Elips(sumbuPanjang, sumbuPendek));
+        super(sumbuPanjang, sumbuPendek);
+        setNama("Kerucut Alas Elips");
         this.tinggi = tinggi;
-        updateSemua();
+        updateAll();
     }
     
-    // ================== GETTER ==================
+    // removed obsolete constructor that accepted color
     
-    @Override
+    // Method private untuk mengupdate semua perhitungan
+    private void updateAll() {
+        hitungGarisPelukis();
+        hitungVolume();
+        hitungLuasPermukaan();
+    }
+    
     public Elips getAlas() {
-        return (Elips) super.getAlas();
+        return this;
+    }
+    
+    public void setAlas(Elips alas) throws GeometryException {
+        setSumbuPanjang(alas.getSumbuPanjang());
+        setSumbuPendek(alas.getSumbuPendek());
+        updateAll();
     }
     
     public double getTinggi() {
         return tinggi;
-    }
-    
-    public double getGarisPelukis() {
-        return garisPelukis;
-    }
-    
-    // ================== SETTER ==================
-    
-    public void setAlas(Elips alas) {
-        super.setAlas(alas);
-        updateSemua();
     }
     
     public void setTinggi(double tinggi) throws GeometryException {
@@ -62,62 +59,61 @@ public class KerucutElips extends Benda3DimensiAlas {
             throw new GeometryException("Tinggi harus > 0", GeometryException.NEGATIVE_VALUE);
         }
         this.tinggi = tinggi;
-        updateSemua();
+        updateAll();
     }
     
-    // ================== CORE LOGIC ==================
-    
-    // Update semua perhitungan
-    private void updateSemua() {
-        hitungGarisPelukis();
-        hitungVolume();
-        hitungLuasPermukaan();
+    public double getGarisPelukis() {
+        return garisPelukis;
     }
     
-    // Luas alas elips
-    public double hitungLuasAlas() {
-        return getAlas().hitungLuas(); // πab
-    }
-    
-    // Garis pelukis (pakai radius efektif √(ab))
+    /**
+     * Menghitung garis pelukis dengan rumus:
+     * s = sqrt(t^2 + (a^2 + b^2)/2)
+     * 
+     * Rumus ini merupakan rata-rata kuadrat dari dua garis pelukis sejati:
+     * s = sqrt((s1^2 + s2^2)/2) dengan s1 = sqrt(t^2 + a^2), s2 = sqrt(t^2 + b^2)
+     */
     public double hitungGarisPelukis() {
         Elips alas = getAlas();
         double a = alas.getSumbuPanjang();
         double b = alas.getSumbuPendek();
         
-        double rEfektif = Math.sqrt(a * b);
+        // Rumus baru: s = sqrt(t^2 + (a^2 + b^2)/2)
+        double rataKuadrat = (a * a + b * b) / 2;
+        garisPelukis = Math.sqrt(tinggi * tinggi + rataKuadrat);
         
-        garisPelukis = Math.sqrt((tinggi * tinggi) + (rEfektif * rEfektif));
         return garisPelukis;
     }
     
-    // Keliling elips (Ramanujan)
-    public double hitungKelilingElips() {
+    public double hitungLuasAlas() {
+        return super.hitungLuas();
+    }
+    
+    /**
+     * Menghitung luas selimut dengan rumus:
+     * L_selimut = pi * (a + b) * s
+     * 
+     * Catatan: Rumus ini tetap menggunakan pendekatan keliling elips ≈ pi*(a+b)
+     * Untuk akurasi lebih tinggi, keliling seharusnya menggunakan pendekatan Ramanujan
+     */
+    public double hitungLuasSelimut() {
         Elips alas = getAlas();
         double a = alas.getSumbuPanjang();
         double b = alas.getSumbuPendek();
-        
-        return PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b)));
+        double s = hitungGarisPelukis();  // menggunakan rumus baru
+        return PI * (a + b) * s;
     }
     
-    // Luas selimut (pendekatan numerik)
-    public double hitungLuasSelimut() {
-        double K = hitungKelilingElips();
-        double s = hitungGarisPelukis();
-        
-        return 0.5 * K * s;
-    }
-    
-    // Volume (BENAR)
     @Override
     public double hitungVolume() {
+        // Volume tetap: V = (1/3) * luas_alas * tinggi (eksak)
         volume = (1.0 / 3.0) * hitungLuasAlas() * tinggi;
         return volume;
     }
     
-    // Luas permukaan
     @Override
     public double hitungLuasPermukaan() {
+        // Luas permukaan = luas alas + luas selimut
         luasPermukaan = hitungLuasAlas() + hitungLuasSelimut();
         return luasPermukaan;
     }
@@ -129,31 +125,35 @@ public class KerucutElips extends Benda3DimensiAlas {
     
     @Override
     public double hitungKeliling() {
-        return getAlas().hitungKeliling();
+        return super.hitungKeliling();
     }
-    
-    // ================== OUTPUT ==================
     
     @Override
     public String info() {
+        // Pastikan nilai terbaru sebelum menampilkan info
+        updateAll();
+        
         Elips alas = getAlas();
         return String.format("""
             === %s ===
-            Warna: %s
             Alas Elips: a=%.4f, b=%.4f
             Tinggi: %.4f
-            Garis Pelukis: %.4f
+            Garis Pelukis (rumus baru): %.4f
             Luas Alas: %.4f satuan luas
-            Luas Selimut (aproksimasi): %.4f satuan luas
+            Luas Selimut: %.4f satuan luas
             Volume: %.4f satuan volume
             Luas Permukaan: %.4f satuan luas
-            
-            *Catatan: Luas selimut menggunakan pendekatan Ramanujan
             """, 
-            getNama(), getWarna(),
+            getNama(),
             alas.getSumbuPanjang(), alas.getSumbuPendek(),
             tinggi, garisPelukis,
             hitungLuasAlas(), hitungLuasSelimut(),
             volume, luasPermukaan);
+    }
+
+    public Thread createThread() {
+        Thread thread = new Thread(this, getNama() + "-Thread");
+        thread.setDaemon(true);
+        return thread;
     }
 }

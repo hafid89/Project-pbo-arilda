@@ -13,6 +13,8 @@ public class Elips extends Benda2Dimensi {
     
     private double sumbuPanjang;  // sumbu mayor (a)
     private double sumbuPendek;   // sumbu minor (b)
+    protected double volume;
+    protected double luasPermukaan;
     private static final double PI = Math.PI;
     
     // Constructor overloading
@@ -21,15 +23,7 @@ public class Elips extends Benda2Dimensi {
     }
     
     public Elips(double sumbuPanjang, double sumbuPendek) {
-        super("Elips", "Biru");
-        this.sumbuPanjang = sumbuPanjang;
-        this.sumbuPendek = sumbuPendek;
-        hitungLuas();
-        hitungKeliling();
-    }
-    
-    public Elips(double sumbuPanjang, double sumbuPendek, String warna) {
-        super("Elips", warna);
+        super("Elips");
         this.sumbuPanjang = sumbuPanjang;
         this.sumbuPendek = sumbuPendek;
         hitungLuas();
@@ -72,14 +66,47 @@ public class Elips extends Benda2Dimensi {
     
     @Override
     public double hitungKeliling() {
-        // Rumus pendekatan Ramanujan untuk keliling elips
         double a = sumbuPanjang;
         double b = sumbuPendek;
+        
+        // Kasus khusus: jika berbentuk lingkaran (a == b)
+        if (Math.abs(a - b) < 1e-9) {
+            keliling = 2 * PI * a;
+            return keliling;
+        }
+        
+        // Rumus Ramanujan
         keliling = PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b)));
         return keliling;
     }
     
+    public double hitungVolume() {
+        return 0;
+    }
+    
+    public double hitungLuasPermukaan() {
+        return hitungLuas();
+    }
+    
+    /**
+     * Menghitung keliling dengan rumus Ramanujan yang lebih akurat (opsional)
+     * Error < 0.01% untuk semua rasio a/b
+     */
+    public double hitungKelilingRamanujanAdvanced() {
+        double a = sumbuPanjang;
+        double b = sumbuPendek;
+        
+        if (Math.abs(a - b) < 1e-9) {
+            return 2 * PI * a;
+        }
+        
+        double h = Math.pow((a - b), 2) / Math.pow((a + b), 2);
+        double kelilingAdvanced = PI * (a + b) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)));
+        return kelilingAdvanced;
+    }
+    
     public double hitungEksentrisitas() {
+        if (sumbuPanjang <= 0) return 0;
         return Math.sqrt(1 - Math.pow(sumbuPendek / sumbuPanjang, 2));
     }
     
@@ -87,13 +114,12 @@ public class Elips extends Benda2Dimensi {
     public String info() {
         return String.format("""
             === %s ===
-            Warna: %s
             Sumbu Panjang (a): %.4f
             Sumbu Pendek (b): %.4f
             Luas: %.4f satuan luas
             Keliling: %.4f satuan panjang
             Eksentrisitas: %.4f
-            """, getNama(), getWarna(), sumbuPanjang, sumbuPendek, luas, keliling, hitungEksentrisitas());
+            """, getNama(), sumbuPanjang, sumbuPendek, luas, keliling, hitungEksentrisitas());
     }
     
     public String toCSVFormat() {
@@ -104,5 +130,17 @@ public class Elips extends Benda2Dimensi {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
             writer.write(info());
         }
+    }
+    
+    @Override
+    public String toString() {
+        return String.format("Elips(a=%.2f, b=%.2f, luas=%.2f, keliling=%.2f)", 
+                            sumbuPanjang, sumbuPendek, luas, keliling);
+    }
+
+    public Thread createThread() {
+        Thread thread = new Thread(this, getNama() + "-Thread");
+        thread.setDaemon(true);
+        return thread;
     }
 }
