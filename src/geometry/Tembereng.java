@@ -73,13 +73,28 @@ public class Tembereng extends BolaElips {
     @Override
     public double hitungLuasPermukaan() {
 
-        // luas sisi lengkung
-        double luasLengkung = 2 * PI * radiusBola * tinggi;
+        // Luas sisi lengkung tembereng bola
+        double luasLengkung =
+                2 * PI *
+                radiusBola *
+                tinggi;
 
-        // luas alas lingkaran
-        double luasAlas = PI * Math.pow(radiusBola, 2);
+        // Radius lingkaran alas tembereng
+        double radiusAlas =
+                Math.sqrt(
+                        (2 * radiusBola * tinggi)
+                        - (tinggi * tinggi)
+                );
 
-        luasPermukaan = luasLengkung + luasAlas;
+        // Luas alas lingkaran
+        double luasAlas =
+                PI *
+                radiusAlas *
+                radiusAlas;
+
+        luasPermukaan =
+                luasLengkung +
+                luasAlas;
 
         return luasPermukaan;
     }
@@ -91,7 +106,15 @@ public class Tembereng extends BolaElips {
 
     @Override
     public double hitungKeliling() {
-        return 2 * PI * radiusBola;
+
+        // Radius lingkaran alas tembereng
+        double radiusAlas =
+                Math.sqrt(
+                        (2 * radiusBola * tinggi)
+                        - (tinggi * tinggi)
+                );
+
+        return 2 * PI * radiusAlas;
     }
 
     @Override

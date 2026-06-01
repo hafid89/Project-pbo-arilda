@@ -56,19 +56,22 @@ public class Juring2Dimensi extends Elips {
      * Keliling Juring = 2 × r_setara + panjang busur
      * atau bisa diperhitungkan sebagai: panjang 2 jari-jari + busur
      */
+    // Kubro ubah hitung keliling
     @Override
     public double hitungKeliling() {
-        double luasElipsOriginal = PI * getSumbuPanjang() * getSumbuPendek();
-        double kelilingElipsOriginal = super.hitungKeliling();
-        
-        // Panjang busur dari elips yang diambil oleh juring
-        double panjangBusur = (sudutJuring / 360.0) * kelilingElipsOriginal;
-        
-        // Jari-jari rata-rata elips sebagai aproksimasi
-        double rataRataJariJari = (getSumbuPanjang() + getSumbuPendek()) / 2.0;
-        
-        // Keliling juring = 2 × jari-jari + busur
-        keliling = 2 * rataRataJariJari + panjangBusur;
+        // Panjang busur elips (aproksimasi menggunakan proporsi keliling)
+        double kelilingElips = super.hitungKeliling();
+        double panjangBusur = (sudutJuring / 360.0) * kelilingElips;
+
+        // Radius pertama (sudut 0°)
+        double r1 = hitungJariJariSudut(0);
+
+        // Radius kedua (sudut akhir juring)
+        double r2 = hitungJariJariSudut(Math.toRadians(sudutJuring));
+
+        // Keliling juring = radius pertama + radius kedua + panjang busur
+        keliling = r1 + r2 + panjangBusur;
+
         return keliling;
     }
     

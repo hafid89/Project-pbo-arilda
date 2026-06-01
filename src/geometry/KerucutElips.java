@@ -90,18 +90,25 @@ public class KerucutElips extends Elips {
     }
     
     /**
-     * Menghitung luas selimut dengan rumus:
-     * L_selimut = pi * (a + b) * s
-     * 
-     * Catatan: Rumus ini tetap menggunakan pendekatan keliling elips ≈ pi*(a+b)
-     * Untuk akurasi lebih tinggi, keliling seharusnya menggunakan pendekatan Ramanujan
+     * Menghitung luas selimut kerucut elips
+     *
+     * Pendekatan:
+     * Luas Selimut ≈ 1/2 × Keliling Alas × Garis Pelukis
+     *
+     * Keliling alas menggunakan rumus Ramanujan
+     * dari kelas Elips sehingga lebih akurat dibanding
+     * pendekatan π(a+b).
      */
     public double hitungLuasSelimut() {
-        Elips alas = getAlas();
-        double a = alas.getSumbuPanjang();
-        double b = alas.getSumbuPendek();
-        double s = hitungGarisPelukis();  // menggunakan rumus baru
-        return PI * (a + b) * s;
+
+        // Keliling alas elips menggunakan aproksimasi Ramanujan
+        double kelilingAlas = super.hitungKeliling();
+
+        // Garis pelukis rata-rata kerucut elips
+        double s = hitungGarisPelukis();
+
+        // Luas selimut ≈ 1/2 × keliling alas × garis pelukis
+        return 0.5 * kelilingAlas * s;
     }
     
     @Override

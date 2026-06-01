@@ -67,12 +67,21 @@ public class Tembereng2Dimensi extends Juring2Dimensi {
      * (menggunakan aproksimasi jari-jari rata-rata)
      */
     private double hitungLuasSegitiga() {
+
+        // Konversi sudut juring dari derajat ke radian
         double sudutRadian = Math.toRadians(getSudutJuring());
-        double rataRataJariJari = (getSumbuPanjang() + getSumbuPendek()) / 2.0;
-        
-        // Luas segitiga = 0.5 × r × r × sin(θ)
-        double luasSegitiga = 0.5 * rataRataJariJari * rataRataJariJari * Math.sin(sudutRadian);
-        return luasSegitiga;
+
+        // Radius pertama dari pusat elips ke titik awal busur (0°)
+        double r1 = hitungJariJariSudut(0);
+
+        // Radius kedua dari pusat elips ke titik akhir busur (θ)
+        double r2 = hitungJariJariSudut(sudutRadian);
+
+        // Luas segitiga menggunakan rumus umum:
+        // L = 1/2 × sisi1 × sisi2 × sin(sudut)
+        // Sisi1 = r1
+        // Sisi2 = r2
+        return 0.5 * r1 * r2 * Math.sin(sudutRadian);
     }
     
     /**
@@ -81,31 +90,48 @@ public class Tembereng2Dimensi extends Juring2Dimensi {
      * Menggunakan pendekatan dengan jari-jari pada sudut tertentu
      */
     public double hitungPanjangChord() {
+
+        // Konversi sudut juring dari derajat ke radian
         double sudutRadian = Math.toRadians(getSudutJuring());
-        double sudutSetengah = sudutRadian / 2.0;
-        
-        // Jari-jari pada sudut 0 dan sudut setengah
-        double r1 = hitungJariJariSudut(sudutSetengah);
-        double r2 = hitungJariJariSudut(-sudutSetengah);
-        
-        // Menggunakan hukum cosinus untuk menghitung chord
-        // chord = sqrt(r1² + r2² - 2×r1×r2×cos(sudut))
-        double panjangChord = Math.sqrt(r1 * r1 + r2 * r2 - 2 * r1 * r2 * Math.cos(sudutRadian));
-        
-        return panjangChord;
-    }
-    
+
+        // Radius menuju titik awal busur (0°)
+        double r1 = hitungJariJariSudut(0);
+
+        // Radius menuju titik akhir busur (θ)
+        double r2 = hitungJariJariSudut(sudutRadian);
+
+        // Menggunakan Hukum Cosinus:
+        // chord² = r1² + r2² - 2(r1)(r2)cos(θ)
+        return Math.sqrt(
+                (r1 * r1) +
+                (r2 * r2) -
+                (2 * r1 * r2 * Math.cos(sudutRadian))
+        );
+    } 
     /**
      * Method tambahan: Menghitung tinggi tembereng
      * Tinggi adalah jarak tegak lurus dari chord ke titik terjauh pada busur
      */
     public double hitungTinggiTembereng() {
+
+        // Konversi sudut juring dari derajat ke radian
         double sudutRadian = Math.toRadians(getSudutJuring());
-        double rataRataJariJari = (getSumbuPanjang() + getSumbuPendek()) / 2.0;
-        
-        // Tinggi = r × (1 - cos(sudut/2))
-        double tinggi = rataRataJariJari * (1 - Math.cos(sudutRadian / 2.0));
-        return tinggi;
+
+        // Radius elips pada arah tengah juring (θ/2)
+        // Digunakan sebagai pendekatan yang lebih baik
+        // dibanding memakai rata-rata sumbu elips
+        double rTengah =
+                hitungJariJariSudut(sudutRadian / 2.0);
+
+        // Tinggi tembereng dihitung dari jarak antara
+        // chord dan titik terjauh pada busur
+        //
+        // Pendekatan:
+        // tinggi = r × (1 - cos(θ/2))
+        //
+        // dengan r menggunakan radius elips pada arah tengah juring
+        return rTengah *
+                (1 - Math.cos(sudutRadian / 2.0));
     }
     
     /**

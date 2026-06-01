@@ -80,6 +80,7 @@ public class Elips extends Benda2Dimensi {
         return keliling;
     }
     
+    // untuk child class
     public double hitungVolume() {
         return 0;
     }

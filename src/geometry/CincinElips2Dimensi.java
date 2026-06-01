@@ -87,25 +87,18 @@ public class CincinElips2Dimensi extends Elips {
      */
     @Override
     public double hitungKeliling() {
+
         // Keliling elips luar
         double kelilingElipsLuar = super.hitungKeliling();
-        
-        // Keliling elips dalam (menggunakan aproksimasi Ramanujan)
-        double a2 = sumbuPanjang2;
-        double b2 = sumbuPendek2;
-        
-        double kelilingElipsDalam;
-        if (Math.abs(a2 - b2) < 1e-9) {
-            kelilingElipsDalam = 2 * PI * a2;
-        } else {
-            kelilingElipsDalam = PI * (3 * (a2 + b2) - Math.sqrt((3 * a2 + b2) * (a2 + 3 * b2)));
-        }
-        
-        // Keliling cincin = jumlah keliling keduanya
+
+        // Keliling elips dalam
+        double kelilingElipsDalam = hitungKelilingElipsDalam();
+
+        // Keliling cincin = jumlah batas luar dan batas dalam
         keliling = kelilingElipsLuar + kelilingElipsDalam;
+
         return keliling;
-    }
-    
+    }    
     /**
      * Method tambahan: Menghitung tebal cincin rata-rata
      * Tebal = (a1 - a2) / 2 (menggunakan sumbu panjang)
@@ -139,15 +132,25 @@ public class CincinElips2Dimensi extends Elips {
     
     /**
      * Method tambahan: Menghitung keliling elips dalam
+     * Menggunakan aproksimasi Ramanujan II (lebih akurat)
      */
     public double hitungKelilingElipsDalam() {
+
         double a2 = sumbuPanjang2;
         double b2 = sumbuPendek2;
-        
+
+        // Jika berbentuk lingkaran
         if (Math.abs(a2 - b2) < 1e-9) {
             return 2 * PI * a2;
         }
-        return PI * (3 * (a2 + b2) - Math.sqrt((3 * a2 + b2) * (a2 + 3 * b2)));
+
+        // Ramanujan II
+        double h = Math.pow(a2 - b2, 2)
+                / Math.pow(a2 + b2, 2);
+
+        return PI * (a2 + b2)
+                * (1 + (3 * h)
+                / (10 + Math.sqrt(4 - 3 * h)));
     }
     
     /**

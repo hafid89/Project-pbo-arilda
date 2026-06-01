@@ -85,26 +85,54 @@ public class KerucutTerpancung extends KerucutElips {
             return luasPermukaan;
         }
         
-        double luasAlasBawah = super.hitungLuas();
+        double luasAlasBawah = PI * getSumbuPanjang() * getSumbuPendek();
         double luasAlasAtas = alasAtas.hitungLuas();
         double luasSelimut = hitungLuasSelimutTerpancung();
         luasPermukaan = luasAlasBawah + luasAlasAtas + luasSelimut;
         return luasPermukaan;
     }
     
+    /**
+     * Menghitung luas selimut kerucut terpancung alas elips
+     *
+     * Pendekatan:
+     * Luas Selimut ≈ 1/2 × (K_bawah + K_atas) × s
+     *
+     * dengan:
+     * K_bawah = keliling elips bawah (Ramanujan)
+     * K_atas  = keliling lingkaran atas
+     * s       = garis pelukis frustum
+     */
     public double hitungLuasSelimutTerpancung() {
-        // Menggunakan radius efektif geometric mean untuk akurasi lebih baik
-        Elips alasBawah = getAlas();
-        double radiusBawah = Math.sqrt(alasBawah.getSumbuPanjang() * alasBawah.getSumbuPendek());
-        double radiusAtas = jariJariAtas;
-        
-        // Garis pelukis (selimut)
-        double s = Math.sqrt(Math.pow(getTinggi(), 2) + Math.pow(radiusBawah - radiusAtas, 2));
-        
-        // Luas selimut kerucut terpancung
-        return PI * (radiusBawah + radiusAtas) * s;
-    }
-    
+
+        // Keliling alas bawah (elips)
+        double kelilingBawah = getAlas().hitungKeliling();
+
+        // Keliling alas atas (lingkaran)
+        double kelilingAtas = 2 * PI * jariJariAtas;
+
+        // Radius efektif bawah
+        double radiusBawah =
+                Math.sqrt(
+                        getSumbuPanjang()
+                        * getSumbuPendek()
+                );
+
+        // Garis pelukis frustum
+        double s =
+                Math.sqrt(
+                        Math.pow(getTinggi(), 2)
+                        + Math.pow(
+                                radiusBawah - jariJariAtas,
+                                2
+                        )
+                );
+
+        // Luas selimut frustum
+        return 0.5 *
+            (kelilingBawah + kelilingAtas)
+            * s;
+    }    
     public double hitungLuasAlasAtas() {
         if (alasAtas == null) {
             // Fallback jika alasAtas belum diinisialisasi
