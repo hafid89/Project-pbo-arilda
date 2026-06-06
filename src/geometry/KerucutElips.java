@@ -6,7 +6,7 @@ import exceptions.GeometryException;
  * Kelas Kerucut dengan alas elips - Benda 3 Dimensi (Limas)
  * Menggunakan rumus garis pelukis: s = sqrt(t^2 + (a^2 + b^2)/2)
  */
-public class KerucutElips extends Benda3DimensiAlas {
+public class KerucutElips extends Elips {
     
     private double tinggi;
     private double garisPelukis;
@@ -14,35 +14,37 @@ public class KerucutElips extends Benda3DimensiAlas {
     
     // Constructor overloading
     public KerucutElips() {
-        this(new Elips(), 1.0);
+        this(1.0, 1.0, 1.0);
     }
     
     public KerucutElips(Elips alas, double tinggi) {
-        super("Kerucut Alas Elips", alas);
+        super(alas.getSumbuPanjang(), alas.getSumbuPendek());
+        setNama("Kerucut Alas Elips");
         this.tinggi = tinggi;
         updateAll();
     }
     
     public KerucutElips(double sumbuPanjang, double sumbuPendek, double tinggi) {
-        this(new Elips(sumbuPanjang, sumbuPendek), tinggi);
+        super(sumbuPanjang, sumbuPendek);
+        setNama("Kerucut Alas Elips");
+        this.tinggi = tinggi;
+        updateAll();
     }
     
-    // removed obsolete constructor that accepted color
-    
-    // Method private untuk mengupdate semua perhitungan
+    // Method private untuk mengupdate semua perhitungan setelah setiap perubahan properti
     private void updateAll() {
         hitungGarisPelukis();
         hitungVolume();
         hitungLuasPermukaan();
     }
     
-    @Override
     public Elips getAlas() {
-        return (Elips) super.getAlas();
+        return this;
     }
     
-    public void setAlas(Elips alas) {
-        super.setAlas(alas);
+    public void setAlas(Elips alas) throws GeometryException {
+        setSumbuPanjang(alas.getSumbuPanjang());
+        setSumbuPendek(alas.getSumbuPendek());
         updateAll();
     }
     
@@ -82,22 +84,29 @@ public class KerucutElips extends Benda3DimensiAlas {
     }
     
     public double hitungLuasAlas() {
-        return getAlas().hitungLuas();
+        return super.hitungLuas();
     }
     
     /**
-     * Menghitung luas selimut dengan rumus:
-     * L_selimut = pi * (a + b) * s
-     * 
-     * Catatan: Rumus ini tetap menggunakan pendekatan keliling elips ≈ pi*(a+b)
-     * Untuk akurasi lebih tinggi, keliling seharusnya menggunakan pendekatan Ramanujan
+     * Menghitung luas selimut kerucut elips
+     *
+     * Pendekatan:
+     * Luas Selimut ≈ 1/2 × Keliling Alas × Garis Pelukis
+     *
+     * Keliling alas menggunakan rumus Ramanujan
+     * dari kelas Elips sehingga lebih akurat dibanding
+     * pendekatan π(a+b).
      */
     public double hitungLuasSelimut() {
-        Elips alas = getAlas();
-        double a = alas.getSumbuPanjang();
-        double b = alas.getSumbuPendek();
-        double s = hitungGarisPelukis();  // menggunakan rumus baru
-        return PI * (a + b) * s;
+
+        // Keliling alas elips menggunakan aproksimasi Ramanujan
+        double kelilingAlas = super.hitungKeliling();
+
+        // Garis pelukis rata-rata kerucut elips
+        double s = hitungGarisPelukis();
+
+        // Luas selimut ≈ 1/2 × keliling alas × garis pelukis
+        return 0.5 * kelilingAlas * s;
     }
     
     @Override
@@ -121,7 +130,7 @@ public class KerucutElips extends Benda3DimensiAlas {
     
     @Override
     public double hitungKeliling() {
-        return getAlas().hitungKeliling();
+        return super.hitungKeliling();
     }
     
     @Override
@@ -145,5 +154,21 @@ public class KerucutElips extends Benda3DimensiAlas {
             tinggi, garisPelukis,
             hitungLuasAlas(), hitungLuasSelimut(),
             volume, luasPermukaan);
+    }
+
+    public Thread createThread() {
+        Thread thread = new Thread(this, getNama() + "-Thread");
+        thread.setDaemon(true);
+        return thread;
+    }
+
+    public void startWorkerAndMaybeInterrupt(BendaGeometri other) {
+        startWorker();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        if (other != null) interruptOther(other);
     }
 }

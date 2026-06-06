@@ -4,7 +4,7 @@ package geometry;
  * Kelas Prisma Juring
  * (Sector Prism)
  */
-public class Juring extends Benda3Dimensi {
+public class Juring extends BolaElips {
 
     private double jariJari;
     private double sudut; // radian
@@ -20,7 +20,8 @@ public class Juring extends Benda3Dimensi {
                   double sudut,
                   double tinggi) {
 
-        super("Prisma Juring");
+        super();
+        setNama("Prisma Juring");
 
         this.jariJari = jariJari;
         this.sudut = sudut;
@@ -105,5 +106,21 @@ public class Juring extends Benda3Dimensi {
             volume,
             luasPermukaan
         );
+    }
+
+    public Thread createThread() {
+        Thread thread = new Thread(this, getNama() + "-Thread");
+        thread.setDaemon(true);
+        return thread;
+    }
+
+    public void startWorkerAndMaybeInterrupt(BendaGeometri other) {
+        startWorker();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        if (other != null) interruptOther(other);
     }
 }

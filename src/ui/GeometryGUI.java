@@ -22,6 +22,8 @@ public class GeometryGUI implements ActionListener {
     private JTabbedPane tabbedPane;
     private JTextArea resultArea;
     private JTextArea historyArea;
+    private JTextArea calculationArea;
+    private JPanel calculationPanel;
     private JProgressBar progressBar;
     private JLabel statusLabel;
 
@@ -30,7 +32,18 @@ public class GeometryGUI implements ActionListener {
     private JTextField tfSumbuX, tfSumbuY, tfSumbuZ;
     private JTextField tfSudut, tfRadiusBola;
     private JCheckBox cbUseElipsBaseForKerucut, cbUseElipsBaseForKerucutTerp, cbUseElipsBaseForTabung;
+    private JCheckBox cbUseElipsBaseForJuring2D, cbUseElipsBaseForTembereng2D, cbUseElipsBaseForCincin2D;
+    private JCheckBox cbUseBolaBaseForJuring3D, cbUseBolaBaseForTembereng3D;
     private JCheckBox cbUseShapeThreading;
+
+    private JPanel demoPanel;
+    private JLabel demoShapeLabel;
+    private JLabel demoStepLabel;
+    private JLabel demoStatusLabel;
+    private JProgressBar demoProgressBar;
+    private JTextArea demoLogArea;
+    private JTextArea demoResultArea;
+    private ShapePreviewPanel shapePreviewPanel;
 
     private GeometryCalculator calculator;
 
@@ -50,13 +63,15 @@ public class GeometryGUI implements ActionListener {
     private void initComponents() {
         frame = new JFrame("Aplikasi Perhitungan Benda Geometri");
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        frame.setSize(950, 750);
+        frame.setSize(1200, 850);
+        frame.setMinimumSize(new Dimension(1000, 750));
         frame.setLocationRelativeTo(null);
         frame.setLayout(new BorderLayout());
 
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+        // Set UI defaults
         UIManager.put("Button.background", new Color(56, 130, 242));
         UIManager.put("Button.foreground", Color.BLACK);
         UIManager.put("Button.font", new Font("Segoe UI", Font.PLAIN, 12));
@@ -66,6 +81,7 @@ public class GeometryGUI implements ActionListener {
         UIManager.put("TextField.background", new Color(255, 255, 255));
         UIManager.put("TextArea.background", new Color(250, 250, 255));
 
+        // Header Panel
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(new Color(26, 115, 232));
         headerPanel.setBorder(BorderFactory.createEmptyBorder(14, 18, 14, 18));
@@ -81,22 +97,33 @@ public class GeometryGUI implements ActionListener {
         headerPanel.add(subtitle, BorderLayout.SOUTH);
         mainPanel.add(headerPanel, BorderLayout.NORTH);
 
+        // Tabbed Pane
         tabbedPane = new JTabbedPane();
         tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         tabbedPane.setBackground(new Color(245, 248, 255));
         tabbedPane.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
-        tabbedPane.addTab("Elips (2D)", create2DPanel());
-        tabbedPane.addTab("Kerucut Elips", create3DLimasPanel());
-        tabbedPane.addTab("Kerucut Terpancung", createKerucutTerpancungPanel());
-        tabbedPane.addTab("Tabung Elips", createTabungElipsPanel());
-        tabbedPane.addTab("Bola Elips", createBolaElipsPanel());
-        tabbedPane.addTab("Juring", createJuringPanel());
-        tabbedPane.addTab("Tembereng", createTemberengPanel());
-        tabbedPane.addTab("Cincin Elips", createCincinPanel());
+        tabbedPane.addTab("Elips (2D)", createScrollTab(create2DPanel()));
+        tabbedPane.addTab("Juring (2D)", createScrollTab(createJuring2DPanel()));
+        tabbedPane.addTab("Tembereng (2D)", createScrollTab(createTembereng2DPanel()));
+        tabbedPane.addTab("Cincin Elips (2D)", createScrollTab(createCincin2DPanel()));
+        tabbedPane.addTab("Kerucut Elips", createScrollTab(create3DLimasPanel()));
+        tabbedPane.addTab("Kerucut Terpancung", createScrollTab(createKerucutTerpancungPanel()));
+        tabbedPane.addTab("Tabung Elips", createScrollTab(createTabungElipsPanel()));
+        tabbedPane.addTab("Bola Elips", createScrollTab(createBolaElipsPanel()));
+        tabbedPane.addTab("Juring (3D)", createScrollTab(createJuringPanel()));
+        tabbedPane.addTab("Tembereng (3D)", createScrollTab(createTemberengPanel()));
+        tabbedPane.addTab("Cincin Elips (3D)", createScrollTab(createCincinPanel()));
+        tabbedPane.addTab("Demo Multithreading", createScrollTab(createDemoPanel()));
+
+        tabbedPane.addChangeListener(e -> updateCalculationPanelVisibility());
 
         mainPanel.add(tabbedPane, BorderLayout.CENTER);
+        calculationPanel = createCalculationPanel();
+        mainPanel.add(calculationPanel, BorderLayout.SOUTH);
+        updateCalculationPanelVisibility();
 
+        // Bottom Panel
         JPanel bottomPanel = new JPanel(new BorderLayout(5, 5));
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
@@ -109,57 +136,143 @@ public class GeometryGUI implements ActionListener {
 
         bottomPanel.add(statusLabel, BorderLayout.WEST);
         bottomPanel.add(progressBar, BorderLayout.CENTER);
-        // Option to use shape-level threading (calls calculateAsync / calculateWithFuture on shapes)
+        
         cbUseShapeThreading = new JCheckBox("Use shape-level threading", false);
         bottomPanel.add(cbUseShapeThreading, BorderLayout.EAST);
 
-        JPanel resultPanel = new JPanel(new BorderLayout());
-        resultPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(153, 180, 255)), "Hasil Perhitungan"),
-                BorderFactory.createEmptyBorder(8, 8, 8, 8)));
-        resultPanel.setBackground(new Color(255, 255, 255));
-
-        resultArea = new JTextArea(10, 50);
-        resultArea.setEditable(false);
-        resultArea.setFont(new Font("Consolas", Font.PLAIN, 12));
-        resultArea.setBackground(new Color(250, 250, 255));
-
-        // Redirect System.out/err to resultArea so background thread logs appear in GUI
         redirectSystemStreams();
-
-        JScrollPane resultScroll = new JScrollPane(resultArea);
-        resultPanel.add(resultScroll, BorderLayout.CENTER);
-
-        mainPanel.add(resultPanel, BorderLayout.SOUTH);
 
         frame.add(mainPanel, BorderLayout.CENTER);
         frame.add(bottomPanel, BorderLayout.SOUTH);
     }
 
-    private JPanel create2DPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+    /**
+     * Helper method untuk membuat panel dengan input di kiri dan rumus di kanan
+     */
+    private JPanel createSplitPanel(JPanel inputPanel, String formulaTitle, String formula, String description) {
+        JPanel mainPanel = new JPanel(new GridBagLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
+        gbc.insets = new Insets(5, 10, 5, 10);
+        gbc.fill = GridBagConstraints.BOTH;
+        
+        // Input panel di kiri (70%)
         gbc.gridx = 0;
         gbc.gridy = 0;
-        panel.add(new JLabel("Sumbu Panjang (a):"), gbc);
+        gbc.weightx = 0.6;
+        gbc.weighty = 1.0;
+        inputPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(100, 150, 255)), "Input Parameter"),
+            BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+        mainPanel.add(inputPanel, gbc);
+        
+        // Info panel di kanan (30%)
         gbc.gridx = 1;
-        tfSumbuPanjang = new JTextField(10);
-        panel.add(tfSumbuPanjang, gbc);
+        gbc.weightx = 0.4;
+        JPanel infoPanel = createInfoPanel(formulaTitle, formula, description);
+        infoPanel.setPreferredSize(new Dimension(300, 0));
+        mainPanel.add(infoPanel, gbc);
+        
+        return mainPanel;
+    }
 
+    private Component createScrollTab(JComponent content) {
+        JScrollPane scrollPane = new JScrollPane(content,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getHorizontalScrollBar().setUnitIncrement(16);
+        return scrollPane;
+    }
+
+    private void updateCalculationPanelVisibility() {
+        if (calculationPanel == null || tabbedPane == null) {
+            return;
+        }
+        String title = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex());
+        calculationPanel.setVisible(!"Demo Multithreading".equals(title));
+        calculationPanel.revalidate();
+        calculationPanel.repaint();
+    }
+
+    private JPanel createCalculationPanel() {
+        calculationArea = new JTextArea();
+        calculationArea.setEditable(false);
+        calculationArea.setLineWrap(true);
+        calculationArea.setWrapStyleWord(true);
+        calculationArea.setFont(new Font("Consolas", Font.PLAIN, 12));
+        calculationArea.setBackground(new Color(250, 250, 255));
+
+        JScrollPane resultScroll = new JScrollPane(calculationArea,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        resultScroll.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(100, 150, 255)), "Hasil Perhitungan"));
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(100, 150, 255)), "Panel Hasil Perhitungan"),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+        panel.add(resultScroll, BorderLayout.CENTER);
+        panel.setPreferredSize(new Dimension(0, 260));
+
+        resultArea = calculationArea;
+        return panel;
+    }
+
+    private JPanel create2DPanel() {
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Baris 0 - Sumbu Panjang
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0.3;
+        JLabel labelA = new JLabel("Sumbu Panjang (a):");
+        labelA.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelA, gbc);
+        
+        gbc.gridx = 1;
+        gbc.weightx = 0.7;
+        tfSumbuPanjang = new JTextField(15);
+        tfSumbuPanjang.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfSumbuPanjang, gbc);
+
+        // Baris 1 - Sumbu Pendek
         gbc.gridx = 0;
         gbc.gridy = 1;
-        panel.add(new JLabel("Sumbu Pendek (b):"), gbc);
+        gbc.weightx = 0.3;
+        JLabel labelB = new JLabel("Sumbu Pendek (b):");
+        labelB.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelB, gbc);
+        
         gbc.gridx = 1;
-        tfSumbuPendek = new JTextField(10);
-        panel.add(tfSumbuPendek, gbc);
+        gbc.weightx = 0.7;
+        tfSumbuPendek = new JTextField(15);
+        tfSumbuPendek.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfSumbuPendek, gbc);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        // Baris 2 - Button
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
         JButton btnHitung = new JButton("Hitung");
         JButton btnReset = new JButton("Reset");
+        
+        btnHitung.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnHitung.setBackground(new Color(56, 130, 242));
+        btnHitung.setForeground(Color.BLACK);
+        btnHitung.setFocusPainted(false);
+        btnHitung.setPreferredSize(new Dimension(120, 35));
+        
+        btnReset.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnReset.setBackground(new Color(220, 53, 69));
+        btnReset.setForeground(Color.BLACK);
+        btnReset.setFocusPainted(false);
+        btnReset.setPreferredSize(new Dimension(120, 35));
 
         btnHitung.addActionListener(e -> calculateElips());
         btnReset.addActionListener(e -> {
@@ -167,309 +280,403 @@ public class GeometryGUI implements ActionListener {
             tfSumbuPendek.setText("");
         });
 
-        btnHitung.setBackground(new Color(56, 130, 242));
-        btnHitung.setForeground(Color.BLACK);
-        btnHitung.setFocusPainted(false);
-
-        btnReset.setBackground(new Color(220, 53, 69));
-        btnReset.setForeground(Color.BLACK);
-        btnReset.setFocusPainted(false);
-
         buttonPanel.add(btnHitung);
         buttonPanel.add(btnReset);
+        inputPanel.add(buttonPanel, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        panel.add(buttonPanel, gbc);
-
-        JPanel infoPanel = createInfoPanel("Elips",
-                "Rumus:\n• Luas = π × a × b\n• Keliling ≈ π × [3(a+b) - √((3a+b)(a+3b))]",
-                "Keterangan:\na = sumbu panjang\nb = sumbu pendek");
-
-        gbc.gridy = 3;
-        panel.add(infoPanel, gbc);
-
-        return panel;
+        String formula = "Rumus:\n• Luas = π × a × b\n• Keliling ≈ π × [3(a+b) - √((3a+b)(a+3b))]";
+        String description = "Keterangan:\na = sumbu panjang\nb = sumbu pendek";
+        
+        return createSplitPanel(inputPanel, "Elips", formula, description);
     }
 
     private JPanel create3DLimasPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel inputPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        // Baris 0
         gbc.gridx = 0;
         gbc.gridy = 0;
-        panel.add(new JLabel("Sumbu Panjang Alas (a):"), gbc);
+        gbc.weightx = 0.35;
+        JLabel labelA = new JLabel("Sumbu Panjang Alas (a):");
+        labelA.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelA, gbc);
+        
         gbc.gridx = 1;
-        JTextField tfAlasPanjang = new JTextField(10);
-        panel.add(tfAlasPanjang, gbc);
+        gbc.weightx = 0.65;
+        JTextField tfAlasPanjang = new JTextField(15);
+        tfAlasPanjang.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfAlasPanjang, gbc);
 
+        // Baris 1
         gbc.gridx = 0;
         gbc.gridy = 1;
-        panel.add(new JLabel("Sumbu Pendek Alas (b):"), gbc);
+        JLabel labelB = new JLabel("Sumbu Pendek Alas (b):");
+        labelB.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelB, gbc);
+        
         gbc.gridx = 1;
-        JTextField tfAlasPendek = new JTextField(10);
-        panel.add(tfAlasPendek, gbc);
+        JTextField tfAlasPendek = new JTextField(15);
+        tfAlasPendek.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfAlasPendek, gbc);
 
+        // Baris 2
         gbc.gridx = 0;
         gbc.gridy = 2;
-        panel.add(new JLabel("Tinggi Kerucut (t):"), gbc);
+        JLabel labelT = new JLabel("Tinggi Kerucut (t):");
+        labelT.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelT, gbc);
+        
         gbc.gridx = 1;
-        JTextField tfTinggi = new JTextField(10);
-        panel.add(tfTinggi, gbc);
+        tfTinggi = new JTextField(15);
+        tfTinggi.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfTinggi, gbc);
 
+        // Baris 3 - Checkbox
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
-        cbUseElipsBaseForKerucut = new JCheckBox("Gunakan data Elips dari panel Elips", true);
-        panel.add(cbUseElipsBaseForKerucut, gbc);
+        cbUseElipsBaseForKerucut = new JCheckBox("Gunakan data Elips dari panel Elips");
+        cbUseElipsBaseForKerucut.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(cbUseElipsBaseForKerucut, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 4;
+        // Baris 4 & 5 - Override fields
         gbc.gridwidth = 1;
-        panel.add(new JLabel("Override Alas (a):"), gbc);
+        gbc.gridy = 4;
+        gbc.gridx = 0;
+        JLabel overrideALabel = new JLabel("Override Alas (a):");
+        overrideALabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(overrideALabel, gbc);
         gbc.gridx = 1;
-        tfAlasPanjang.setEnabled(false);
-        panel.add(tfAlasPanjang, gbc);
+        JTextField tfOverrideA = new JTextField(15);
+        tfOverrideA.setEnabled(false);
+        tfOverrideA.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfOverrideA, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 5;
-        panel.add(new JLabel("Override Alas (b):"), gbc);
+        JLabel overrideBLabel = new JLabel("Override Alas (b):");
+        overrideBLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(overrideBLabel, gbc);
         gbc.gridx = 1;
-        tfAlasPendek.setEnabled(false);
-        panel.add(tfAlasPendek, gbc);
+        JTextField tfOverrideB = new JTextField(15);
+        tfOverrideB.setEnabled(false);
+        tfOverrideB.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfOverrideB, gbc);
 
         cbUseElipsBaseForKerucut.addActionListener(e -> {
             boolean usePanel = cbUseElipsBaseForKerucut.isSelected();
-            tfAlasPanjang.setEnabled(!usePanel);
-            tfAlasPendek.setEnabled(!usePanel);
+            tfOverrideA.setEnabled(!usePanel);
+            tfOverrideB.setEnabled(!usePanel);
             if (usePanel) {
-                tfAlasPanjang.setText("");
-                tfAlasPendek.setText("");
+                tfOverrideA.setText("");
+                tfOverrideB.setText("");
             }
         });
 
+        // Baris 6 - Button
         gbc.gridx = 0;
         gbc.gridy = 6;
         gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
         JButton btnHitung = new JButton("Hitung");
+        btnHitung.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnHitung.setBackground(new Color(56, 130, 242));
+        btnHitung.setForeground(Color.BLACK);
+        btnHitung.setFocusPainted(false);
+        btnHitung.setPreferredSize(new Dimension(120, 35));
+        
         btnHitung.addActionListener(e -> {
             try {
                 double t = Double.parseDouble(tfTinggi.getText().trim());
-                Elips alas = resolveElipsBase(cbUseElipsBaseForKerucut.isSelected(), tfAlasPanjang, tfAlasPendek);
+                Elips alas = resolveElipsBase(cbUseElipsBaseForKerucut.isSelected(), tfOverrideA, tfOverrideB);
                 calculateKerucutElips(alas, t);
             } catch (NumberFormatException ex) {
                 showError("Input harus berupa angka yang valid dan lebih dari 0!");
             }
         });
-        btnHitung.setBackground(new Color(56, 130, 242));
-        btnHitung.setForeground(Color.BLACK);
-        btnHitung.setFocusPainted(false);
-        panel.add(btnHitung, gbc);
+        inputPanel.add(btnHitung, gbc);
 
-        return panel;
+        String formula = "Rumus:\n• Volume = 1/3 × Luas Alas × t\n• Luas Alas = π × a × b\n• Luas Selimut ≈ π × (a+b) × l";
+        String description = "Keterangan:\na = sumbu panjang alas\nb = sumbu pendek alas\nt = tinggi kerucut";
+        
+        return createSplitPanel(inputPanel, "Kerucut Elips", formula, description);
     }
 
     private JPanel createKerucutTerpancungPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel inputPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0;
         gbc.gridy = 0;
-        panel.add(new JLabel("Sumbu Panjang Alas (a):"), gbc);
+        gbc.weightx = 0.35;
+        JLabel labelA = new JLabel("Sumbu Panjang Alas (a):");
+        labelA.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelA, gbc);
         gbc.gridx = 1;
-        JTextField tfAlasPanjang = new JTextField(10);
-        panel.add(tfAlasPanjang, gbc);
+        gbc.weightx = 0.65;
+        JTextField tfAlasPanjang = new JTextField(15);
+        tfAlasPanjang.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfAlasPanjang, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        panel.add(new JLabel("Sumbu Pendek Alas (b):"), gbc);
+        JLabel labelB = new JLabel("Sumbu Pendek Alas (b):");
+        labelB.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelB, gbc);
         gbc.gridx = 1;
-        JTextField tfAlasPendek = new JTextField(10);
-        panel.add(tfAlasPendek, gbc);
+        JTextField tfAlasPendek = new JTextField(15);
+        tfAlasPendek.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfAlasPendek, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
-        panel.add(new JLabel("Tinggi (t):"), gbc);
+        JLabel labelT = new JLabel("Tinggi (t):");
+        labelT.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelT, gbc);
         gbc.gridx = 1;
-        JTextField tfTinggi = new JTextField(10);
-        panel.add(tfTinggi, gbc);
+        tfTinggi = new JTextField(15);
+        tfTinggi.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfTinggi, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 3;
-        panel.add(new JLabel("Jari-jari Atas (r):"), gbc);
+        JLabel labelR = new JLabel("Jari-jari Atas (r):");
+        labelR.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelR, gbc);
         gbc.gridx = 1;
-        tfJariJariAtas = new JTextField(10);
-        panel.add(tfJariJariAtas, gbc);
+        tfJariJariAtas = new JTextField(15);
+        tfJariJariAtas.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfJariJariAtas, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 4;
         gbc.gridwidth = 2;
-        cbUseElipsBaseForKerucutTerp = new JCheckBox("Gunakan data Elips dari panel Elips", true);
-        panel.add(cbUseElipsBaseForKerucutTerp, gbc);
+        cbUseElipsBaseForKerucutTerp = new JCheckBox("Gunakan data Elips dari panel Elips");
+        cbUseElipsBaseForKerucutTerp.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(cbUseElipsBaseForKerucutTerp, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 5;
         gbc.gridwidth = 1;
-        panel.add(new JLabel("Override Alas (a):"), gbc);
+        gbc.gridy = 5;
+        gbc.gridx = 0;
+        JLabel overrideALabel = new JLabel("Override Sumbu Panjang (a):");
+        overrideALabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(overrideALabel, gbc);
         gbc.gridx = 1;
-        tfAlasPanjang.setEnabled(false);
-        panel.add(tfAlasPanjang, gbc);
+        JTextField tfOverrideA = new JTextField(15);
+        tfOverrideA.setEnabled(false);
+        tfOverrideA.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfOverrideA, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 6;
-        panel.add(new JLabel("Override Alas (b):"), gbc);
+        JLabel overrideBLabel = new JLabel("Override Sumbu Pendek (b):");
+        overrideBLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(overrideBLabel, gbc);
         gbc.gridx = 1;
-        tfAlasPendek.setEnabled(false);
-        panel.add(tfAlasPendek, gbc);
+        JTextField tfOverrideB = new JTextField(15);
+        tfOverrideB.setEnabled(false);
+        tfOverrideB.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfOverrideB, gbc);
 
         cbUseElipsBaseForKerucutTerp.addActionListener(e -> {
             boolean usePanel = cbUseElipsBaseForKerucutTerp.isSelected();
-            tfAlasPanjang.setEnabled(!usePanel);
-            tfAlasPendek.setEnabled(!usePanel);
+            tfOverrideA.setEnabled(!usePanel);
+            tfOverrideB.setEnabled(!usePanel);
             if (usePanel) {
-                tfAlasPanjang.setText("");
-                tfAlasPendek.setText("");
+                tfOverrideA.setText("");
+                tfOverrideB.setText("");
             }
         });
 
         gbc.gridx = 0;
         gbc.gridy = 7;
         gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
         JButton btnHitung = new JButton("Hitung");
+        btnHitung.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnHitung.setBackground(new Color(56, 130, 242));
+        btnHitung.setForeground(Color.BLACK);
+        btnHitung.setFocusPainted(false);
+        btnHitung.setPreferredSize(new Dimension(120, 35));
+        
         btnHitung.addActionListener(e -> {
             try {
                 double t = Double.parseDouble(tfTinggi.getText().trim());
                 double r = Double.parseDouble(tfJariJariAtas.getText().trim());
-                Elips alas = resolveElipsBase(cbUseElipsBaseForKerucutTerp.isSelected(), tfAlasPanjang, tfAlasPendek);
+                Elips alas = resolveElipsBase(cbUseElipsBaseForKerucutTerp.isSelected(), tfOverrideA, tfOverrideB);
                 calculateKerucutTerpancung(alas.getSumbuPanjang(), alas.getSumbuPendek(), t, r);
             } catch (NumberFormatException ex) {
                 showError("Input harus berupa angka yang valid dan lebih dari 0!");
             }
         });
-        btnHitung.setBackground(new Color(56, 130, 242));
-        btnHitung.setForeground(Color.BLACK);
-        btnHitung.setFocusPainted(false);
-        panel.add(btnHitung, gbc);
+        inputPanel.add(btnHitung, gbc);
 
-        return panel;
+        String formula = "Rumus:\n• Volume = 1/3 × π × t × (a² + ab + b²)\n• Luas Alas = π × a × b\n• Luas Permukaan = π × (a+b) × s + π × a × b + π × r²";
+        String description = "Keterangan:\na, b = sumbu alas\nt = tinggi\nr = jari-jari atas";
+        
+        return createSplitPanel(inputPanel, "Kerucut Terpancung", formula, description);
     }
 
     private JPanel createTabungElipsPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel inputPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0;
         gbc.gridy = 0;
-        panel.add(new JLabel("Sumbu Panjang Alas (a):"), gbc);
+        gbc.weightx = 0.35;
+        JLabel labelA = new JLabel("Sumbu Panjang Alas (a):");
+        labelA.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelA, gbc);
         gbc.gridx = 1;
-        JTextField tfA = new JTextField(10);
-        panel.add(tfA, gbc);
+        gbc.weightx = 0.65;
+        JTextField tfA = new JTextField(15);
+        tfA.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfA, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        panel.add(new JLabel("Sumbu Pendek Alas (b):"), gbc);
+        JLabel labelB = new JLabel("Sumbu Pendek Alas (b):");
+        labelB.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelB, gbc);
         gbc.gridx = 1;
-        JTextField tfB = new JTextField(10);
-        panel.add(tfB, gbc);
+        JTextField tfB = new JTextField(15);
+        tfB.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfB, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
-        panel.add(new JLabel("Tinggi Tabung (t):"), gbc);
+        JLabel labelT = new JLabel("Tinggi Tabung (t):");
+        labelT.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelT, gbc);
         gbc.gridx = 1;
-        JTextField tfT = new JTextField(10);
-        panel.add(tfT, gbc);
+        JTextField tfT = new JTextField(15);
+        tfT.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfT, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
-        cbUseElipsBaseForTabung = new JCheckBox("Gunakan data Elips dari panel Elips", true);
-        panel.add(cbUseElipsBaseForTabung, gbc);
+        cbUseElipsBaseForTabung = new JCheckBox("Gunakan data Elips dari panel Elips");
+        cbUseElipsBaseForTabung.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(cbUseElipsBaseForTabung, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 4;
         gbc.gridwidth = 1;
-        panel.add(new JLabel("Override Alas (a):"), gbc);
+        gbc.gridy = 4;
+        gbc.gridx = 0;
+        JLabel overrideALabel = new JLabel("Override Alas (a):");
+        overrideALabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(overrideALabel, gbc);
         gbc.gridx = 1;
-        tfA.setEnabled(false);
-        panel.add(tfA, gbc);
+        JTextField tfOverrideA = new JTextField(15);
+        tfOverrideA.setEnabled(false);
+        tfOverrideA.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfOverrideA, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 5;
-        panel.add(new JLabel("Override Alas (b):"), gbc);
+        JLabel overrideBLabel = new JLabel("Override Alas (b):");
+        overrideBLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(overrideBLabel, gbc);
         gbc.gridx = 1;
-        tfB.setEnabled(false);
-        panel.add(tfB, gbc);
+        JTextField tfOverrideB = new JTextField(15);
+        tfOverrideB.setEnabled(false);
+        tfOverrideB.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfOverrideB, gbc);
 
         cbUseElipsBaseForTabung.addActionListener(e -> {
             boolean usePanel = cbUseElipsBaseForTabung.isSelected();
-            tfA.setEnabled(!usePanel);
-            tfB.setEnabled(!usePanel);
+            tfOverrideA.setEnabled(!usePanel);
+            tfOverrideB.setEnabled(!usePanel);
             if (usePanel) {
-                tfA.setText("");
-                tfB.setText("");
+                tfOverrideA.setText("");
+                tfOverrideB.setText("");
             }
         });
 
         gbc.gridx = 0;
         gbc.gridy = 6;
         gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
         JButton btnHitung = new JButton("Hitung");
+        btnHitung.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnHitung.setBackground(new Color(56, 130, 242));
+        btnHitung.setForeground(Color.BLACK);
+        btnHitung.setFocusPainted(false);
+        btnHitung.setPreferredSize(new Dimension(120, 35));
+        
         btnHitung.addActionListener(e -> {
             try {
                 double t = Double.parseDouble(tfT.getText().trim());
-                Elips alas = resolveElipsBase(cbUseElipsBaseForTabung.isSelected(), tfA, tfB);
+                Elips alas = resolveElipsBase(cbUseElipsBaseForTabung.isSelected(), tfOverrideA, tfOverrideB);
                 calculateTabungElips(alas, t);
             } catch (NumberFormatException ex) {
                 showError("Input harus berupa angka yang valid dan lebih dari 0!");
             }
         });
-        btnHitung.setBackground(new Color(56, 130, 242));
-        btnHitung.setForeground(Color.BLACK);
-        btnHitung.setFocusPainted(false);
-        panel.add(btnHitung, gbc);
+        inputPanel.add(btnHitung, gbc);
 
-        return panel;
+        String formula = "Rumus:\n• Volume = Luas Alas × t\n• Luas Alas = π × a × b\n• Luas Selimut = 2 × π × √((a²+b²)/2) × t";
+        String description = "Keterangan:\na, b = sumbu alas\nt = tinggi tabung";
+        
+        return createSplitPanel(inputPanel, "Tabung Elips", formula, description);
     }
 
     private JPanel createBolaElipsPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel inputPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0;
         gbc.gridy = 0;
-        panel.add(new JLabel("Radius Sumbu X (a):"), gbc);
+        gbc.weightx = 0.35;
+        JLabel labelX = new JLabel("Radius Sumbu X (a):");
+        labelX.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelX, gbc);
         gbc.gridx = 1;
-        tfSumbuX = new JTextField(10);
-        panel.add(tfSumbuX, gbc);
+        gbc.weightx = 0.65;
+        tfSumbuX = new JTextField(15);
+        tfSumbuX.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfSumbuX, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        panel.add(new JLabel("Radius Sumbu Y (b):"), gbc);
+        JLabel labelY = new JLabel("Radius Sumbu Y (b):");
+        labelY.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelY, gbc);
         gbc.gridx = 1;
-        tfSumbuY = new JTextField(10);
-        panel.add(tfSumbuY, gbc);
+        tfSumbuY = new JTextField(15);
+        tfSumbuY.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfSumbuY, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
-        panel.add(new JLabel("Radius Sumbu Z (c):"), gbc);
+        JLabel labelZ = new JLabel("Radius Sumbu Z (c):");
+        labelZ.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelZ, gbc);
         gbc.gridx = 1;
-        tfSumbuZ = new JTextField(10);
-        panel.add(tfSumbuZ, gbc);
+        tfSumbuZ = new JTextField(15);
+        tfSumbuZ.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfSumbuZ, gbc);
 
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
         JButton btnHitung = new JButton("Hitung");
+        btnHitung.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnHitung.setBackground(new Color(56, 130, 242));
+        btnHitung.setForeground(Color.BLACK);
+        btnHitung.setFocusPainted(false);
+        btnHitung.setPreferredSize(new Dimension(120, 35));
+        
         btnHitung.addActionListener(e -> {
             try {
                 double x = Double.parseDouble(tfSumbuX.getText());
@@ -480,50 +687,88 @@ public class GeometryGUI implements ActionListener {
                 showError("Input harus berupa angka!");
             }
         });
-        btnHitung.setBackground(new Color(56, 130, 242));
-        btnHitung.setForeground(Color.BLACK);
-        btnHitung.setFocusPainted(false);
+        inputPanel.add(btnHitung, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        panel.add(btnHitung, gbc);
-
-        return panel;
+        String formula = "Rumus:\n• Volume = 4/3 × π × a × b × c\n• Luas Permukaan ≈ 4π × ((a^p b^p + a^p c^p + b^p c^p)/3)^(1/p)";
+        String description = "Keterangan:\na, b, c = semiaxis bola elips";
+        
+        return createSplitPanel(inputPanel, "Bola Elips", formula, description);
     }
 
     private JPanel createJuringPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel inputPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0;
         gbc.gridy = 0;
-        panel.add(new JLabel("Jari-jari (r):"), gbc);
+        gbc.weightx = 0.35;
+        JLabel labelR = new JLabel("Jari-jari (r):");
+        labelR.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelR, gbc);
         gbc.gridx = 1;
-        JTextField tfR = new JTextField(10);
-        panel.add(tfR, gbc);
+        gbc.weightx = 0.65;
+        JTextField tfR = new JTextField(15);
+        tfR.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfR, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        panel.add(new JLabel("Sudut (derajat):"), gbc);
+        gbc.gridwidth = 2;
+        cbUseBolaBaseForJuring3D = new JCheckBox("Gunakan data Bola Elips dari panel Bola");
+        cbUseBolaBaseForJuring3D.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(cbUseBolaBaseForJuring3D, gbc);
+
+        cbUseBolaBaseForJuring3D.addActionListener(e -> {
+            boolean usePanel = cbUseBolaBaseForJuring3D.isSelected();
+            tfR.setEnabled(!usePanel);
+            if (usePanel) {
+                tfR.setText("");
+            }
+        });
+
+        gbc.gridwidth = 1;
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        JLabel labelSudut = new JLabel("Sudut (derajat):");
+        labelSudut.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelSudut, gbc);
         gbc.gridx = 1;
-        tfSudut = new JTextField(10);
-        panel.add(tfSudut, gbc);
+        tfSudut = new JTextField(15);
+        tfSudut.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfSudut, gbc);
 
         gbc.gridx = 0;
-        gbc.gridy = 2;
-        panel.add(new JLabel("Tinggi (t):"), gbc);
+        gbc.gridy = 3;
+        JLabel labelT = new JLabel("Tinggi (t):");
+        labelT.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelT, gbc);
         gbc.gridx = 1;
-        JTextField tfT = new JTextField(10);
-        panel.add(tfT, gbc);
+        JTextField tfT = new JTextField(15);
+        tfT.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfT, gbc);
 
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
         JButton btnHitung = new JButton("Hitung");
+        btnHitung.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnHitung.setBackground(new Color(56, 130, 242));
+        btnHitung.setForeground(Color.BLACK);
+        btnHitung.setFocusPainted(false);
+        btnHitung.setPreferredSize(new Dimension(120, 35));
+        
         btnHitung.addActionListener(e -> {
             try {
-                double r = Double.parseDouble(tfR.getText());
+                double r;
+                if (cbUseBolaBaseForJuring3D.isSelected()) {
+                    BolaElips bola = getBolaFromPanel();
+                    r = bola.getSumbuPanjang();
+                } else {
+                    r = Double.parseDouble(tfR.getText());
+                }
                 double sudut = Double.parseDouble(tfSudut.getText());
                 double t = Double.parseDouble(tfT.getText());
                 calculateJuring(r, Math.toRadians(sudut), t);
@@ -531,226 +776,849 @@ public class GeometryGUI implements ActionListener {
                 showError("Input harus berupa angka!");
             }
         });
-        btnHitung.setBackground(new Color(56, 130, 242));
-        btnHitung.setForeground(Color.BLACK);
-        btnHitung.setFocusPainted(false);
+        inputPanel.add(btnHitung, gbc);
+
+        String formula = "Rumus:\n• Volume = 1/2 × r² × sudut × t\n• Luas Permukaan = 2×Luas Alas + selimut\n• Keliling Alas = r × sudut + 2r";
+        String description = "Keterangan:\nr = jari-jari\nt = tinggi\nsudut dalam radian";
+        
+        return createSplitPanel(inputPanel, "Juring (3D)", formula, description);
+    }
+
+    private JPanel createTemberengPanel() {
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        cbUseBolaBaseForTembereng3D = new JCheckBox("Gunakan data Bola Elips dari panel Bola");
+        cbUseBolaBaseForTembereng3D.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(cbUseBolaBaseForTembereng3D, gbc);
+
+        gbc.gridwidth = 1;
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.weightx = 0.35;
+        JLabel labelT = new JLabel("Tinggi Tembereng (t):");
+        labelT.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelT, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 0.65;
+        JTextField tfT = new JTextField(15);
+        tfT.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfT, gbc);
+
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        JLabel labelR = new JLabel("Radius Bola (R):");
+        labelR.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelR, gbc);
+        gbc.gridx = 1;
+        tfRadiusBola = new JTextField(15);
+        tfRadiusBola.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tfRadiusBola.setEnabled(!cbUseBolaBaseForTembereng3D.isSelected());
+        inputPanel.add(tfRadiusBola, gbc);
+
+        cbUseBolaBaseForTembereng3D.addActionListener(e -> {
+            boolean usePanel = cbUseBolaBaseForTembereng3D.isSelected();
+            tfRadiusBola.setEnabled(!usePanel);
+            if (usePanel) {
+                tfRadiusBola.setText("");
+            }
+        });
 
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
-        panel.add(btnHitung, gbc);
-
-        return panel;
-    }
-
-    private JPanel createTemberengPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        panel.add(new JLabel("Tinggi Tembereng (t):"), gbc);
-        gbc.gridx = 1;
-        JTextField tfT = new JTextField(10);
-        panel.add(tfT, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        panel.add(new JLabel("Radius Bola (R):"), gbc);
-        gbc.gridx = 1;
-        tfRadiusBola = new JTextField(10);
-        panel.add(tfRadiusBola, gbc);
-
+        gbc.anchor = GridBagConstraints.CENTER;
         JButton btnHitung = new JButton("Hitung");
+        btnHitung.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnHitung.setBackground(new Color(56, 130, 242));
+        btnHitung.setForeground(Color.BLACK);
+        btnHitung.setFocusPainted(false);
+        btnHitung.setPreferredSize(new Dimension(120, 35));
+        
         btnHitung.addActionListener(e -> {
             try {
                 double t = Double.parseDouble(tfT.getText());
-                double R = Double.parseDouble(tfRadiusBola.getText());
+                double R;
+                if (cbUseBolaBaseForTembereng3D.isSelected()) {
+                    BolaElips bola = getBolaFromPanel();
+                    R = (bola.getSumbuPanjang() + bola.getSumbuPendek() + bola.getSumbuZ()) / 3.0;
+                } else {
+                    R = Double.parseDouble(tfRadiusBola.getText());
+                }
                 calculateTembereng(t, R);
             } catch (NumberFormatException ex) {
                 showError("Input harus berupa angka!");
             }
         });
-        btnHitung.setBackground(new Color(56, 130, 242));
-        btnHitung.setForeground(Color.BLACK);
-        btnHitung.setFocusPainted(false);
+        inputPanel.add(btnHitung, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        panel.add(btnHitung, gbc);
-
-        return panel;
+        String formula = "Rumus:\n• Volume = π × t² × (R - t/3)\n• Luas Permukaan = 2πR t + πR²";
+        String description = "Keterangan:\nt = tinggi tembereng\nR = radius bola";
+        
+        return createSplitPanel(inputPanel, "Tembereng (3D)", formula, description);
     }
 
     private JPanel createCincinPanel() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        JPanel inputPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         gbc.gridx = 0;
         gbc.gridy = 0;
-        panel.add(new JLabel("Jari-jari Luar (R):"), gbc);
+        gbc.weightx = 0.35;
+        JLabel labelR = new JLabel("Radius Utama (R):");
+        labelR.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelR, gbc);
         gbc.gridx = 1;
-        tfJariJariLuar = new JTextField(10);
-        panel.add(tfJariJariLuar, gbc);
+        gbc.weightx = 0.65;
+        tfJariJariLuar = new JTextField(15);
+        tfJariJariLuar.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfJariJariLuar, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        panel.add(new JLabel("Jari-jari Dalam (r):"), gbc);
+        JLabel labelA = new JLabel("Semi Mayor Elips (a):");
+        labelA.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelA, gbc);
         gbc.gridx = 1;
-        tfJariJariDalam = new JTextField(10);
-        panel.add(tfJariJariDalam, gbc);
+        tfJariJariDalam = new JTextField(15);
+        tfJariJariDalam.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfJariJariDalam, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
-        panel.add(new JLabel("Tinggi (t):"), gbc);
+        JLabel labelB = new JLabel("Semi Minor Elips (b):");
+        labelB.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelB, gbc);
         gbc.gridx = 1;
-        JTextField tfT = new JTextField(10);
-        panel.add(tfT, gbc);
-
-        JButton btnHitung = new JButton("Hitung");
-        btnHitung.addActionListener(e -> {
-            try {
-                double R = Double.parseDouble(tfJariJariLuar.getText());
-                double r = Double.parseDouble(tfJariJariDalam.getText());
-                double t = Double.parseDouble(tfT.getText());
-                calculateCincin(R, r, t);
-            } catch (NumberFormatException ex) {
-                showError("Input harus berupa angka!");
-            }
-        });
-        btnHitung.setBackground(new Color(56, 130, 242));
-        btnHitung.setForeground(Color.BLACK);
-        btnHitung.setFocusPainted(false);
+        JTextField tfB = new JTextField(15);
+        tfB.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfB, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
-        panel.add(btnHitung, gbc);
+        gbc.anchor = GridBagConstraints.CENTER;
+        JButton btnHitung = new JButton("Hitung");
+        btnHitung.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnHitung.setBackground(new Color(56, 130, 242));
+        btnHitung.setForeground(Color.BLACK);
+        btnHitung.setFocusPainted(false);
+        btnHitung.setPreferredSize(new Dimension(120, 35));
+        
+        btnHitung.addActionListener(e -> {
+            try {
+                double R = Double.parseDouble(tfJariJariLuar.getText());
+                double a = Double.parseDouble(tfJariJariDalam.getText());
+                double b = Double.parseDouble(tfB.getText());
+                calculateCincin(R, a, b);
+            } catch (NumberFormatException ex) {
+                showError("Input harus berupa angka!");
+            }
+        });
+        inputPanel.add(btnHitung, gbc);
 
-        return panel;
+        String formula = "Rumus:\n• Volume = 2π² × R × a × b\n• Luas Permukaan ≈ 4π² × R × √((a²+b²)/2)";
+        String description = "Keterangan:\nR = radius utama\na = semi mayor elips\nb = semi minor elips";
+        
+        return createSplitPanel(inputPanel, "Cincin Elips (3D)", formula, description);
     }
 
-    private JPanel createHistoryPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+    // Methods untuk 2D panels dengan layout yang sama
+    private JPanel createJuring2DPanel() {
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        historyListModel = new DefaultListModel<>();
-        historyList = new JList<>(historyListModel);
-        historyList.setFont(new Font("Consolas", Font.PLAIN, 12));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0.35;
+        JLabel labelA = new JLabel("Sumbu Panjang (a):");
+        labelA.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelA, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 0.65;
+        JTextField tfA = new JTextField(15);
+        tfA.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfA, gbc);
 
-        JScrollPane scrollPane = new JScrollPane(historyList);
-        panel.add(scrollPane, BorderLayout.CENTER);
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        JLabel labelB = new JLabel("Sumbu Pendek (b):");
+        labelB.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelB, gbc);
+        gbc.gridx = 1;
+        JTextField tfB = new JTextField(15);
+        tfB.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfB, gbc);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton btnRefresh = new JButton("Refresh");
-        JButton btnClear = new JButton("Clear History");
-        JButton btnExport = new JButton("Export History");
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        JLabel labelTheta = new JLabel("Sudut Juring (derajat):");
+        labelTheta.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelTheta, gbc);
+        gbc.gridx = 1;
+        JTextField tfTheta = new JTextField(15);
+        tfTheta.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfTheta, gbc);
 
-        btnRefresh.addActionListener(e -> loadHistory());
-        btnClear.addActionListener(e -> clearHistory());
-        btnExport.addActionListener(e -> exportToFile());
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        cbUseElipsBaseForJuring2D = new JCheckBox("Gunakan data Elips dari panel Elips");
+        cbUseElipsBaseForJuring2D.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(cbUseElipsBaseForJuring2D, gbc);
 
-        btnRefresh.setBackground(new Color(0, 130, 242));
-        btnRefresh.setForeground(Color.BLACK);
-        btnRefresh.setFocusPainted(true);
+        gbc.gridwidth = 1;
+        gbc.gridy = 4;
+        gbc.gridx = 0;
+        JLabel overrideALabel = new JLabel("Override Sumbu Panjang (a):");
+        overrideALabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(overrideALabel, gbc);
+        gbc.gridx = 1;
+        JTextField tfAOverride = new JTextField(15);
+        tfAOverride.setEnabled(false);
+        tfAOverride.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfAOverride, gbc);
 
-        btnClear.setBackground(new Color(220, 0, 0));
-        btnClear.setForeground(Color.BLACK);
-        btnClear.setFocusPainted(true);
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        JLabel overrideBLabel = new JLabel("Override Sumbu Pendek (b):");
+        overrideBLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(overrideBLabel, gbc);
+        gbc.gridx = 1;
+        JTextField tfBOverride = new JTextField(15);
+        tfBOverride.setEnabled(false);
+        tfBOverride.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfBOverride, gbc);
 
-        btnExport.setBackground(new Color(0, 175, 0));
-        btnExport.setForeground(Color.BLACK);
-        btnExport.setFocusPainted(true);
+        cbUseElipsBaseForJuring2D.addActionListener(e -> {
+            boolean usePanel = cbUseElipsBaseForJuring2D.isSelected();
+            tfAOverride.setEnabled(!usePanel);
+            tfBOverride.setEnabled(!usePanel);
+            if (usePanel) {
+                tfAOverride.setText("");
+                tfBOverride.setText("");
+            }
+        });
 
-        buttonPanel.add(btnRefresh);
-        buttonPanel.add(btnClear);
-        buttonPanel.add(btnExport);
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        JButton btnHitung = new JButton("Hitung");
+        btnHitung.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnHitung.setBackground(new Color(56, 130, 242));
+        btnHitung.setForeground(Color.BLACK);
+        btnHitung.setFocusPainted(false);
+        btnHitung.setPreferredSize(new Dimension(120, 35));
+        
+        btnHitung.addActionListener(e -> {
+            try {
+                Elips basis = resolveElipsBase(cbUseElipsBaseForJuring2D.isSelected(), tfAOverride, tfBOverride);
+                double a = basis.getSumbuPanjang();
+                double b = basis.getSumbuPendek();
+                double sudut = Double.parseDouble(tfTheta.getText().trim());
+                calculateJuring2D(a, b, sudut);
+            } catch (NumberFormatException ex) {
+                showError("Input harus berupa angka yang valid!");
+            }
+        });
+        inputPanel.add(btnHitung, gbc);
 
-        panel.add(buttonPanel, BorderLayout.SOUTH);
-
-        loadHistory();
-
-        return panel;
+        String formula = "Rumus:\n• Luas = (sudut/360) × π × a × b\n• Keliling ≈ 2r + busur";
+        String description = "Keterangan:\na = sumbu panjang\nb = sumbu pendek\nsudut dalam derajat";
+        
+        return createSplitPanel(inputPanel, "Juring (2D)", formula, description);
     }
 
-    private JPanel createAboutPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(new Color(248, 251, 255));
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+    private JPanel createTembereng2DPanel() {
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JTextArea aboutText = new JTextArea();
-        aboutText.setEditable(false);
-        aboutText.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        aboutText.setBackground(new Color(245, 245, 245));
-        aboutText.setText("""
-                ================================================
-                        APLIKASI PERHITUNGAN BENDA GEOMETRI
-                ================================================
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0.35;
+        JLabel labelA = new JLabel("Sumbu Panjang (a):");
+        labelA.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelA, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 0.65;
+        JTextField tfA = new JTextField(15);
+        tfA.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfA, gbc);
 
-                Aplikasi ini dapat menghitung berbagai benda geometri:
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        JLabel labelB = new JLabel("Sumbu Pendek (b):");
+        labelB.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelB, gbc);
+        gbc.gridx = 1;
+        JTextField tfB = new JTextField(15);
+        tfB.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfB, gbc);
 
-                ★ Benda 2 Dimensi:
-                  • Elips
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        JLabel labelTheta = new JLabel("Sudut Tembereng (derajat):");
+        labelTheta.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelTheta, gbc);
+        gbc.gridx = 1;
+        JTextField tfTheta = new JTextField(15);
+        tfTheta.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfTheta, gbc);
 
-                ★ Benda 3 Dimensi (Limas):
-                  • Kerucut dengan alas elips
-                  • Kerucut terpancung dengan alas elips
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        cbUseElipsBaseForTembereng2D = new JCheckBox("Gunakan data Elips dari panel Elips");
+        cbUseElipsBaseForTembereng2D.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(cbUseElipsBaseForTembereng2D, gbc);
 
-                ★ Benda 3 Dimensi (Prisma):
-                  • Tabung dengan alas elips
-                  • Bola elips (Ellipsoid)
-                  • Juring bola
-                  • Tembereng bola
-                  • Cincin dengan pola dasar elips (Torus)
+        gbc.gridwidth = 1;
+        gbc.gridy = 4;
+        gbc.gridx = 0;
+        JLabel overrideALabel = new JLabel("Override Sumbu Panjang (a):");
+        overrideALabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(overrideALabel, gbc);
+        gbc.gridx = 1;
+        JTextField tfAOverride = new JTextField(15);
+        tfAOverride.setEnabled(false);
+        tfAOverride.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfAOverride, gbc);
 
-                © 2026 - Proyek PBO Kelompok 3
-                Versi 1.0""");
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        JLabel overrideBLabel = new JLabel("Override Sumbu Pendek (b):");
+        overrideBLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(overrideBLabel, gbc);
+        gbc.gridx = 1;
+        JTextField tfBOverride = new JTextField(15);
+        tfBOverride.setEnabled(false);
+        tfBOverride.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfBOverride, gbc);
 
-        JScrollPane scroll = new JScrollPane(aboutText);
-        panel.add(scroll, BorderLayout.CENTER);
+        cbUseElipsBaseForTembereng2D.addActionListener(e -> {
+            boolean usePanel = cbUseElipsBaseForTembereng2D.isSelected();
+            tfAOverride.setEnabled(!usePanel);
+            tfBOverride.setEnabled(!usePanel);
+            if (usePanel) {
+                tfAOverride.setText("");
+                tfBOverride.setText("");
+            }
+        });
 
-        return panel;
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        JButton btnHitung = new JButton("Hitung");
+        btnHitung.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnHitung.setBackground(new Color(56, 130, 242));
+        btnHitung.setForeground(Color.BLACK);
+        btnHitung.setFocusPainted(false);
+        btnHitung.setPreferredSize(new Dimension(120, 35));
+        
+        btnHitung.addActionListener(e -> {
+            try {
+                Elips basis = resolveElipsBase(cbUseElipsBaseForTembereng2D.isSelected(), tfAOverride, tfBOverride);
+                double a = basis.getSumbuPanjang();
+                double b = basis.getSumbuPendek();
+                double sudut = Double.parseDouble(tfTheta.getText().trim());
+                calculateTembereng2D(a, b, sudut);
+            } catch (NumberFormatException ex) {
+                showError("Input harus berupa angka yang valid!");
+            }
+        });
+        inputPanel.add(btnHitung, gbc);
+
+        String formula = "Rumus:\n• Luas = Luas juring - Luas segitiga\n• Keliling = busur + chord";
+        String description = "Keterangan:\na = sumbu panjang\nb = sumbu pendek\nsudut dalam derajat";
+        
+        return createSplitPanel(inputPanel, "Tembereng (2D)", formula, description);
     }
 
-    private void showHistoryDialog() {
-        JDialog dialog = new JDialog(frame, "History", true);
-        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        dialog.getContentPane().add(createHistoryPanel());
-        dialog.pack();
-        dialog.setSize(new Dimension(640, 420));
-        dialog.setLocationRelativeTo(frame);
-        dialog.setVisible(true);
+    private JPanel createCincin2DPanel() {
+        JPanel inputPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0.35;
+        JLabel labelA1 = new JLabel("Sumbu Panjang Luar (a1):");
+        labelA1.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelA1, gbc);
+        gbc.gridx = 1;
+        gbc.weightx = 0.65;
+        JTextField tfA1 = new JTextField(15);
+        tfA1.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfA1, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        JLabel labelB1 = new JLabel("Sumbu Pendek Luar (b1):");
+        labelB1.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelB1, gbc);
+        gbc.gridx = 1;
+        JTextField tfB1 = new JTextField(15);
+        tfB1.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfB1, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        JLabel labelA2 = new JLabel("Sumbu Panjang Dalam (a2):");
+        labelA2.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelA2, gbc);
+        gbc.gridx = 1;
+        JTextField tfA2 = new JTextField(15);
+        tfA2.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfA2, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        JLabel labelB2 = new JLabel("Sumbu Pendek Dalam (b2):");
+        labelB2.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        inputPanel.add(labelB2, gbc);
+        gbc.gridx = 1;
+        JTextField tfB2 = new JTextField(15);
+        tfB2.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfB2, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        cbUseElipsBaseForCincin2D = new JCheckBox("Gunakan data Elips luar dari panel Elips");
+        cbUseElipsBaseForCincin2D.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(cbUseElipsBaseForCincin2D, gbc);
+
+        gbc.gridwidth = 1;
+        gbc.gridy = 5;
+        gbc.gridx = 0;
+        JLabel overrideA1Label = new JLabel("Override Sumbu Panjang Luar (a1):");
+        overrideA1Label.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(overrideA1Label, gbc);
+        gbc.gridx = 1;
+        JTextField tfA1Override = new JTextField(15);
+        tfA1Override.setEnabled(false);
+        tfA1Override.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfA1Override, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        JLabel overrideB1Label = new JLabel("Override Sumbu Pendek Luar (b1):");
+        overrideB1Label.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        inputPanel.add(overrideB1Label, gbc);
+        gbc.gridx = 1;
+        JTextField tfB1Override = new JTextField(15);
+        tfB1Override.setEnabled(false);
+        tfB1Override.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        inputPanel.add(tfB1Override, gbc);
+
+        cbUseElipsBaseForCincin2D.addActionListener(e -> {
+            boolean usePanel = cbUseElipsBaseForCincin2D.isSelected();
+            tfA1Override.setEnabled(!usePanel);
+            tfB1Override.setEnabled(!usePanel);
+            if (usePanel) {
+                tfA1Override.setText("");
+                tfB1Override.setText("");
+            }
+        });
+
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        JButton btnHitung = new JButton("Hitung");
+        btnHitung.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnHitung.setBackground(new Color(56, 130, 242));
+        btnHitung.setForeground(Color.BLACK);
+        btnHitung.setFocusPainted(false);
+        btnHitung.setPreferredSize(new Dimension(120, 35));
+        
+        btnHitung.addActionListener(e -> {
+            try {
+                double a1;
+                double b1;
+                if (cbUseElipsBaseForCincin2D.isSelected()) {
+                    Elips basis = getElipsFromPanel();
+                    a1 = basis.getSumbuPanjang();
+                    b1 = basis.getSumbuPendek();
+                } else {
+                    a1 = Double.parseDouble(tfA1Override.getText().trim());
+                    b1 = Double.parseDouble(tfB1Override.getText().trim());
+                }
+                double a2 = Double.parseDouble(tfA2.getText().trim());
+                double b2 = Double.parseDouble(tfB2.getText().trim());
+                calculateCincin2D(a1, b1, a2, b2);
+            } catch (NumberFormatException ex) {
+                showError("Input harus berupa angka yang valid!");
+            }
+        });
+        inputPanel.add(btnHitung, gbc);
+
+        String formula = "Rumus:\n• Luas = Luas elips luar - Luas elips dalam\n• Keliling ≈ keliling luar + keliling dalam";
+        String description = "Keterangan:\na1, b1 = elips luar\na2, b2 = elips dalam";
+        
+        return createSplitPanel(inputPanel, "Cincin Elips (2D)", formula, description);
     }
 
-    private void showAboutDialog() {
-        JDialog dialog = new JDialog(frame, "About", true);
-        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        dialog.getContentPane().add(createAboutPanel());
-        dialog.pack();
-        dialog.setSize(new Dimension(560, 420));
-        dialog.setLocationRelativeTo(frame);
-        dialog.setVisible(true);
+    private JPanel createDemoPanel() {
+        JPanel main = new JPanel(new BorderLayout(10, 10));
+        main.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        main.setPreferredSize(new Dimension(940, 900));
+        main.setBackground(new Color(245, 248, 255));
+
+        // === TOP PANEL ===
+        JPanel topPanel = new JPanel(new GridLayout(1, 2, 10, 0));
+        topPanel.setOpaque(false);
+        topPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+
+        // === LEFT PANEL (info only) ===
+        JPanel leftTopPanel = new JPanel(new BorderLayout());
+        leftTopPanel.setOpaque(false);
+
+        // Info Panel (shape, progress, status)
+        JPanel infoPanel = new JPanel(new GridLayout(3, 1, 5, 5));
+        infoPanel.setOpaque(false);
+        infoPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(100, 150, 255)), "Demo Multithreading"));
+
+        demoShapeLabel = new JLabel("Shape: -");
+        demoShapeLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        demoStepLabel = new JLabel("Progress: -");
+        demoStepLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        demoStatusLabel = new JLabel("Status: Tunggu mulai demo");
+        demoStatusLabel.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+
+        infoPanel.add(demoShapeLabel);
+        infoPanel.add(demoStepLabel);
+        infoPanel.add(demoStatusLabel);
+        leftTopPanel.add(infoPanel, BorderLayout.CENTER);
+
+        // Setup internal demo result container, tetapi tidak ditambahkan ke panel demo.
+        demoResultArea = new JTextArea(6, 40);
+        demoResultArea.setEditable(false);
+        demoResultArea.setLineWrap(true);
+        demoResultArea.setWrapStyleWord(true);
+        demoResultArea.setFont(new Font("Consolas", Font.PLAIN, 11));
+        demoResultArea.setBackground(new Color(250, 250, 255));
+
+        topPanel.add(leftTopPanel);
+
+        // === RIGHT PANEL (preview shape) ===
+        shapePreviewPanel = new ShapePreviewPanel();
+        shapePreviewPanel.setPreferredSize(new Dimension(320, 220));
+        shapePreviewPanel.setMinimumSize(new Dimension(280, 220));
+        shapePreviewPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(100, 150, 255)), "Preview Shape"));
+        topPanel.add(shapePreviewPanel);
+
+        topPanel.setPreferredSize(new Dimension(0, 360));
+        main.add(topPanel, BorderLayout.NORTH);
+
+        // === PROGRESS BAR ===
+        demoProgressBar = new JProgressBar(0, 100);
+        demoProgressBar.setStringPainted(true);
+        demoProgressBar.setPreferredSize(new Dimension(0, 24));
+        demoProgressBar.setVisible(false);
+        main.add(demoProgressBar, BorderLayout.SOUTH);
+
+        // === CENTER PANEL (log demo only) ===
+        demoLogArea = new JTextArea(30, 40);
+        demoLogArea.setEditable(false);
+        demoLogArea.setLineWrap(true);
+        demoLogArea.setWrapStyleWord(true);
+        demoLogArea.setFont(new Font("Consolas", Font.PLAIN, 12));
+        demoLogArea.setBackground(new Color(250, 250, 255));
+        JScrollPane demoScroll = new JScrollPane(demoLogArea,
+                JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        demoScroll.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(100, 150, 255)), "Log Demo"));
+        main.add(demoScroll, BorderLayout.CENTER);
+
+        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        actionPanel.setOpaque(false);
+        JButton btnStartDemo = new JButton("Mulai Demo Multithreading");
+        btnStartDemo.setBackground(new Color(56, 130, 242));
+        btnStartDemo.setForeground(Color.black);
+        btnStartDemo.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        btnStartDemo.setPreferredSize(new Dimension(220, 38));
+        btnStartDemo.addActionListener(e -> {
+            btnStartDemo.setEnabled(false);
+            runMultithreadingGuiDemo(() -> btnStartDemo.setEnabled(true));
+        });
+        actionPanel.add(btnStartDemo);
+
+        main.add(actionPanel, BorderLayout.PAGE_END);
+        return main;
+    }
+
+    private void runMultithreadingGuiDemo(Runnable onComplete) {
+        demoProgressBar.setValue(0);
+        demoProgressBar.setVisible(true);
+        demoLogArea.setText("");
+        demoResultArea.setText("");
+        demoShapeLabel.setText("Shape: -");
+        demoStepLabel.setText("Progress: -");
+        demoStatusLabel.setText("Status: Menyiapkan demo...");
+
+        List<BendaGeometri> demoShapes = new ArrayList<>();
+        demoShapes.add(new Elips(5.0, 3.0));
+        try {
+            demoShapes.add(new Juring2Dimensi(5.0, 3.0, 45.0));
+            demoShapes.add(new Tembereng2Dimensi(5.0, 3.0, 60.0));
+            demoShapes.add(new CincinElips2Dimensi(8.0, 5.0, 4.0, 2.5));
+        } catch (GeometryException ex) {
+            // Gagal membuat shape 2D, lanjutkan dengan shape yang ada
+        }
+        demoShapes.add(new KerucutElips(4.0, 2.0, 6.0));
+        demoShapes.add(new KerucutTerpancung(4.0, 2.0, 5.0, 1.0));
+        demoShapes.add(new TabungElips(4.0, 2.0, 5.0));
+        demoShapes.add(new BolaElips(3.0, 2.0, 2.0));
+        demoShapes.add(new Juring(3.0, Math.PI / 3.0, 4.0));
+        demoShapes.add(new Tembereng(1.0, 2.0));
+        demoShapes.add(new CincinElips(4.0, 1.4, 1.0));
+
+        java.util.Map<String, Integer> shapeProgress = new java.util.HashMap<>();
+        demoShapes.forEach(shape -> {
+            shape.setTotalIterations(10);
+            shape.setIterationDelayMs(500);
+            shapeProgress.put(shape.getNama(), 0);
+            shape.setProgressListener((shape1, currentIteration, totalIterations, message) -> {
+                SwingUtilities.invokeLater(() -> {
+                    shapeProgress.put(shape1.getNama(), currentIteration);
+                    demoShapeLabel.setText("Shape: " + shape1.getNama());
+                    demoStepLabel.setText("Progress: " + currentIteration + " / " + totalIterations);
+                    demoProgressBar.setValue((int) ((currentIteration / (double) totalIterations) * 100));
+                    demoStatusLabel.setText("Status: " + shape1.getNama() + " sedang menghitung...");
+                    shapePreviewPanel.setShapeName(shape1.getClass().getSimpleName());
+                    shapePreviewPanel.setProgress(currentIteration, totalIterations);
+                    updateDemoLogDisplay(demoShapes, shapeProgress);
+                });
+            });
+        });
+
+        Thread demoThread = new Thread(() -> {
+            demoStatusLabel.setText("Status: Demo berjalan...");
+            updateDemoLogDisplay(demoShapes, shapeProgress);
+
+            int totalWork = demoShapes.size() * 10;
+            int completedTotal = 0;
+
+            while (demoShapes.stream().anyMatch(shape -> !shape.isComplete())) {
+                // Shuffle urutan shapes untuk eksekusi random
+                List<BendaGeometri> shuffledShapes = new ArrayList<>(demoShapes);
+                java.util.Collections.shuffle(shuffledShapes);
+
+                for (BendaGeometri shape : shuffledShapes) {
+                    if (shape.isComplete()) {
+                        continue;
+                    }
+
+                    int before = shape.getCurrentIteration();
+                    shape.startWorker();
+                    try {
+                        shape.getWorker().join(800);
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
+
+                    if (!shape.isComplete()) {
+                        shape.interruptWorker();
+                    }
+
+                    int delta = shape.getCurrentIteration() - before;
+                    completedTotal += Math.max(delta, 0);
+                    final int globalDone = completedTotal;
+                    SwingUtilities.invokeLater(() -> {
+                        demoProgressBar.setValue((int) ((globalDone / (double) totalWork) * 100));
+                        updateDemoLogDisplay(demoShapes, shapeProgress);
+                    });
+
+                    if (shape.isComplete()) {
+                        try {
+                            double luas = shape.hitungLuas();
+                            String result = String.format("✓ %s: Luas=%.2f", shape.getNama(), luas);
+                            if (shape instanceof VolumeCalculable) {
+                                double volume = ((VolumeCalculable) shape).hitungVolume();
+                                result += String.format(", Volume=%.2f", volume);
+                            }
+                            result += String.format(", Keliling=%.2f\n", shape.hitungKeliling());
+                            appendDemoResult(result);
+                        } catch (Exception ex) {
+                            appendDemoResult(String.format("✗ %s: Error - %s\n", shape.getNama(), ex.getMessage()));
+                        }
+                    }
+                }
+            }
+
+            SwingUtilities.invokeLater(() -> {
+                demoProgressBar.setVisible(false);
+                demoStatusLabel.setText("Status: Demo selesai semua shape");
+                demoLogArea.setText(demoLogArea.getText() + "\n\n=== Demo Multithreading Selesai ===");
+                if (onComplete != null) onComplete.run();
+            });
+        }, "Demo-Multithreading-Runner");
+        demoThread.start();
+    }
+
+    private void updateDemoLogDisplay(List<BendaGeometri> shapes, java.util.Map<String, Integer> progress) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Memulai program :\n");
+        for (int i = 0; i < shapes.size(); i++) {
+            BendaGeometri shape = shapes.get(i);
+            int currentProgress = progress.getOrDefault(shape.getNama(), 0);
+            int totalProgress = shape.getTotalIterations();
+            String progressBar = buildProgressBar(currentProgress, totalProgress);
+            sb.append(String.format("%2d. %s %s\n", i + 1, shape.getNama(), progressBar));
+        }
+        demoLogArea.setText(sb.toString());
+    }
+
+    private String buildProgressBar(int current, int total) {
+        StringBuilder bar = new StringBuilder();
+        for (int i = 0; i < total; i++) {
+            if (i > 0) {
+                bar.append("  "); // Jarak antar kotak
+            }
+            if (i < current) {
+                // Kotak terisi dengan █
+                bar.append("[█]");
+            } else {
+                // Kotak kosong
+                bar.append("[]");
+            }
+        }
+        return bar.toString();
+    }
+
+    private void appendDemoResult(String text) {
+        SwingUtilities.invokeLater(() -> {
+            demoResultArea.append(text);
+            demoResultArea.setCaretPosition(demoResultArea.getDocument().getLength());
+        });
+    }
+
+    private class ShapePreviewPanel extends JPanel {
+        private String shapeName = "-";
+        private int completedItems = 0;
+        private int totalItems = 10;
+
+        public void setShapeName(String name) {
+            this.shapeName = name;
+            repaint();
+        }
+
+        public void setProgress(int completedItems, int totalItems) {
+            this.completedItems = completedItems;
+            this.totalItems = totalItems;
+            repaint();
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(new Color(240, 248, 255));
+            g2.fillRect(0, 0, getWidth(), getHeight());
+            g2.setColor(new Color(56, 130, 242));
+            g2.setStroke(new BasicStroke(4));
+
+            int w = getWidth();
+            int h = getHeight();
+            int margin = 25;
+
+            switch (shapeName) {
+                case "Elips" -> g2.drawOval(margin, margin + 10, w - margin * 2, h - margin * 3 - 40);
+                case "TabungElips" -> {
+                    g2.drawOval(margin, margin, w - margin * 2, 40);
+                    g2.drawLine(margin, margin + 20, margin, h - margin - 50);
+                    g2.drawLine(w - margin, margin + 20, w - margin, h - margin - 50);
+                    g2.drawOval(margin, h - margin - 70, w - margin * 2, 40);
+                }
+                case "KerucutElips", "KerucutTerpancung" -> {
+                    g2.drawOval(margin, margin, w - margin * 2, 30);
+                    int[] xPoints = {margin, w / 2, w - margin};
+                    int[] yPoints = {margin + 20, h - margin - 50, margin + 20};
+                    g2.drawPolygon(xPoints, yPoints, 3);
+                }
+                case "BolaElips" -> g2.drawOval(margin, margin, w - margin * 2, h - margin * 3 - 40);
+                case "Juring" -> {
+                    g2.drawArc(margin, margin, w - margin * 2, h - margin * 3 - 40, 0, 90);
+                    g2.drawLine(w / 2, h / 2, w / 2, margin + 10);
+                    g2.drawLine(w / 2, h / 2, w - margin - 10, h / 2);
+                }
+                case "Tembereng" -> {
+                    g2.drawArc(margin, margin, w - margin * 2, h - margin * 3 - 40, 0, 180);
+                    g2.drawLine(w / 2, h / 2, w / 2, margin + 10);
+                }
+                case "CincinElips" -> {
+                    g2.drawOval(margin + 10, margin + 10, w - margin * 2 - 20, h - margin * 3 - 60);
+                    g2.drawOval(margin + 30, margin + 30, w - margin * 2 - 60, h - margin * 3 - 100);
+                }
+                case "Juring2Dimensi", "Tembereng2Dimensi", "CincinElips2Dimensi" -> {
+                    g2.drawOval(margin, margin, w - margin * 2, h - margin * 3 - 60);
+                }
+                default -> {
+                    g2.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                    FontMetrics fm = g2.getFontMetrics();
+                    String label = "Preview";
+                    int tx = (w - fm.stringWidth(label)) / 2;
+                    int ty = h / 2;
+                    g2.drawString(label, tx, ty);
+                }
+            }
+
+            int bubbleSize = 16;
+            int gap = 8;
+            int totalWidth = totalItems * bubbleSize + (totalItems - 1) * gap;
+            int startX = Math.max(margin, (w - totalWidth) / 2);
+            int y = h - margin - 20;
+
+            for (int i = 1; i <= totalItems; i++) {
+                if (i <= completedItems) {
+                    g2.setColor(new Color(56, 130, 242));
+                    g2.fillOval(startX + (i - 1) * (bubbleSize + gap), y, bubbleSize, bubbleSize);
+                } else {
+                    g2.setColor(new Color(200, 220, 255));
+                    g2.fillOval(startX + (i - 1) * (bubbleSize + gap), y, bubbleSize, bubbleSize);
+                }
+                g2.setColor(new Color(56, 130, 242));
+                g2.drawOval(startX + (i - 1) * (bubbleSize + gap), y, bubbleSize, bubbleSize);
+            }
+
+            g2.setFont(new Font("Segoe UI", Font.BOLD, 16));
+            g2.setColor(new Color(56, 130, 242));
+            g2.drawString(shapeName, margin, h - margin);
+            g2.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+            g2.drawString(String.format("%d / %d data", completedItems, totalItems), w - margin - 80, h - margin);
+        }
     }
 
     private JPanel createInfoPanel(String title, String formula, String description) {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createTitledBorder(title),
+                BorderFactory.createTitledBorder(BorderFactory.createLineBorder(new Color(100, 150, 255)), title, 
+                    TitledBorder.LEFT, TitledBorder.TOP, new Font("Segoe UI", Font.BOLD, 13)),
                 BorderFactory.createEmptyBorder(10, 10, 10, 10)));
+        panel.setBackground(new Color(255, 255, 240));
 
-        JTextArea infoArea = new JTextArea(6, 40);
+        JTextArea infoArea = new JTextArea(12, 30);
         infoArea.setEditable(false);
-        infoArea.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        infoArea.setBackground(new Color(255, 255, 200));
+        infoArea.setFont(new Font("Consolas", Font.PLAIN, 12));
+        infoArea.setBackground(new Color(255, 255, 240));
         infoArea.setText(formula + "\n\n" + description);
+        infoArea.setMargin(new Insets(10, 10, 10, 10));
 
         panel.add(new JScrollPane(infoArea), BorderLayout.CENTER);
 
@@ -799,14 +1667,8 @@ public class GeometryGUI implements ActionListener {
         menuBar.add(fileMenu);
         menuBar.add(viewMenu);
         menuBar.add(historyMenu);
-        JMenu toolsMenu = new JMenu("Tools");
-        JMenuItem runDemoItem = new JMenuItem("Run Multithreading Demo");
-        runDemoItem.addActionListener(e -> {
-            // Run demo in background so UI stays responsive
-            new Thread(() -> geometry.MultithreadingGeometryDemo.main(new String[0])).start();
-        });
-        toolsMenu.add(runDemoItem);
         
+        JMenu toolsMenu = new JMenu("Tools");
         JMenuItem polyDemoItem = new JMenuItem("Demo Polymorphism");
         polyDemoItem.addActionListener(e -> demonstratePolymorphism());
         toolsMenu.add(polyDemoItem);
@@ -838,18 +1700,16 @@ public class GeometryGUI implements ActionListener {
     }
 
     private void calculateShape(BendaGeometri shape, String parameters, String label) {
-        // If user chose to use shape-level threading, use the shape's async/future APIs
         if (cbUseShapeThreading != null && cbUseShapeThreading.isSelected()) {
-            resultArea.setText("");
+            resultArea.setText(label + " sedang dihitung (shape-thread)\nParameter: " + parameters);
             statusLabel.setText(label + " sedang dihitung (shape-thread)");
             java.util.concurrent.Future<Double> future = shape.calculateWithFuture();
             new Thread(() -> {
                 try {
                     Double res = future.get();
                     SwingUtilities.invokeLater(() -> {
-                        resultArea.setText(shape.info());
+                        resultArea.setText("Parameter: " + parameters + "\n\n" + shape.info());
                         statusLabel.setText(label + " selesai | result = " + String.format("%.4f", res));
-                        // add to history
                         addToHistory(shape.getNama(), parameters, res, (shape instanceof VolumeCalculable) ? "volume" : "luas");
                         loadHistory();
                     });
@@ -871,13 +1731,14 @@ public class GeometryGUI implements ActionListener {
                 progressBar.setVisible(true);
                 progressBar.setValue(progress);
                 statusLabel.setText(label + " sedang dihitung (" + progress + "%)");
+                resultArea.setText(label + " sedang dihitung...\n" + progress + "% selesai\nParameter: " + parameters);
             }
 
             @Override
             public void onComplete(double result, String resultType, String details) {
                 progressBar.setVisible(false);
                 progressBar.setValue(0);
-                resultArea.setText(details);
+                resultArea.setText("Parameter: " + parameters + "\n\n" + details + "\n\nHasil: " + String.format("%.4f %s", result, resultType));
                 statusLabel.setText(label + " selesai | " + resultType + " = " + String.format("%.4f", result));
                 loadHistory();
             }
@@ -915,6 +1776,16 @@ public class GeometryGUI implements ActionListener {
             throw new NumberFormatException("Nilai alas harus lebih dari 0");
         }
         return new Elips(a, b);
+    }
+
+    private BolaElips getBolaFromPanel() throws NumberFormatException {
+        double a = Double.parseDouble(tfSumbuX.getText().trim());
+        double b = Double.parseDouble(tfSumbuY.getText().trim());
+        double c = Double.parseDouble(tfSumbuZ.getText().trim());
+        if (a <= 0 || b <= 0 || c <= 0) {
+            throw new NumberFormatException("Semua nilai sumbu bola harus lebih dari 0");
+        }
+        return new BolaElips(a, b, c);
     }
 
     private void calculateElips() {
@@ -987,35 +1858,41 @@ public class GeometryGUI implements ActionListener {
         calculateShape(cincin, String.format("R=%.2f, r=%.2f, t=%.2f", R, r, t), "Cincin Elips");
     }
 
+    private void calculateJuring2D(double a, double b, double sudut) {
+        try {
+            Juring2Dimensi juring = new Juring2Dimensi(a, b, sudut);
+            calculateShape(juring, String.format("a=%.2f, b=%.2f, sudut=%.2f°", a, b, sudut), "Juring (2D)");
+        } catch (GeometryException ex) {
+            showError("Error: " + ex.getMessage());
+        }
+    }
+
+    private void calculateTembereng2D(double a, double b, double sudut) {
+        try {
+            Tembereng2Dimensi tembereng = new Tembereng2Dimensi(a, b, sudut);
+            calculateShape(tembereng, String.format("a=%.2f, b=%.2f, sudut=%.2f°", a, b, sudut), "Tembereng (2D)");
+        } catch (GeometryException ex) {
+            showError("Error: " + ex.getMessage());
+        }
+    }
+
+    private void calculateCincin2D(double a1, double b1, double a2, double b2) {
+        try {
+            CincinElips2Dimensi cincin = new CincinElips2Dimensi(a1, b1, a2, b2);
+            calculateShape(cincin, String.format("a1=%.2f, b1=%.2f, a2=%.2f, b2=%.2f", a1, b1, a2, b2), "Cincin Elips (2D)");
+        } catch (GeometryException ex) {
+            showError("Error: " + ex.getMessage());
+        }
+    }
+
     private void addToHistory(String shapeName, String parameters, double result, String resultType) {
         String record = String.format("[%tT] %s(%s) = %.4f %s",
                 new java.util.Date(), shapeName, parameters, result, resultType);
-        // Ensure history model exists before updating UI
-        if (historyListModel == null) {
-            historyListModel = new DefaultListModel<>();
-            historyList = new JList<>(historyListModel);
-        }
-        historyListModel.add(0, record);
         calculator.addCalculationRecord(shapeName, parameters, result, resultType);
     }
 
     private void loadHistory() {
-        // Lazily create history UI model if not yet created
-        if (historyListModel == null) {
-            historyListModel = new DefaultListModel<>();
-            historyList = new JList<>(historyListModel);
-        }
-        historyListModel.clear();
-        java.util.List<GeometryCalculator.CalculationRecord> records = calculator.getHistory();
-        if (records.isEmpty()) {
-            historyListModel.addElement("=== HISTORY KOSONG ===");
-            historyListModel.addElement("Lakukan perhitungan untuk menambah history");
-            return;
-        }
-        historyListModel.addElement("=== HISTORY PERHITUNGAN ===");
-        for (GeometryCalculator.CalculationRecord record : records) {
-            historyListModel.addElement(record.toString());
-        }
+        // History will be shown in dialog
     }
 
     private void clearHistory() {
@@ -1024,13 +1901,8 @@ public class GeometryGUI implements ActionListener {
                 "Konfirmasi", JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            historyListModel.clear();
             calculator.clearHistory();
             statusLabel.setText("History telah dihapus");
-
-            // Optional: Tambahkan pesan bahwa history kosong
-            historyListModel.addElement("=== HISTORY KOSONG ===");
-            historyListModel.addElement("Lakukan perhitungan untuk menambah history");
         }
     }
 
@@ -1045,7 +1917,6 @@ public class GeometryGUI implements ActionListener {
 
         if (fileChooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
             String filename = fileChooser.getSelectedFile().getAbsolutePath();
-
             calculator.saveHistoryToFile(filename);
             JOptionPane.showMessageDialog(frame,
                     "History berhasil diekspor ke:\n" + filename,
@@ -1054,7 +1925,6 @@ public class GeometryGUI implements ActionListener {
         }
     }
 
-    // Redirect System.out and System.err to the GUI resultArea so thread logs are visible
     private void redirectSystemStreams() {
         OutputStream out = new OutputStream() {
             private final StringBuilder sb = new StringBuilder();
@@ -1089,35 +1959,27 @@ public class GeometryGUI implements ActionListener {
         
         List<BendaGeometri> shapesCollection = new ArrayList<>();
         
-        // Menambahkan berbagai ACTUAL TYPE ke list yang bertipe BendaGeometri
         output.append("[1] Membuat berbagai bentuk geometri:\n");
         output.append("    ✓ Elips (2D)\n");
-        BendaGeometri Benda2D = new Elips(5.0, 3.0);
-        shapesCollection.add(Benda2D);
+        shapesCollection.add(new Elips(5.0, 3.0));
         
         output.append("    ✓ KerucutElips (3D)\n");
-        BendaGeometri Benda3D = new KerucutElips(4.0, 2.0, 6.0);
-        shapesCollection.add(Benda3D);
+        shapesCollection.add(new KerucutElips(4.0, 2.0, 6.0));
         
         output.append("    ✓ TabungElips (3D)\n");
-        BendaGeometri Benda3DTabung = new TabungElips(3.5, 2.5, 8.0);
-        shapesCollection.add(Benda3DTabung);
+        shapesCollection.add(new TabungElips(3.5, 2.5, 8.0));
         
         output.append("    ✓ BolaElips (3D)\n");
-        BendaGeometri Benda3DBola = new BolaElips(4.0, 3.0, 2.0);
-        shapesCollection.add(Benda3DBola);
+        shapesCollection.add(new BolaElips(4.0, 3.0, 2.0));
         
         output.append("    ✓ Juring (3D)\n");
-        BendaGeometri Benda3DJuring = new Juring(3.0, Math.PI/3, 5.0);
-        shapesCollection.add(Benda3DJuring);
+        shapesCollection.add(new Juring(3.0, Math.PI/3, 5.0));
         
         output.append("    ✓ Tembereng (3D)\n");
-        BendaGeometri Benda3DTembereng = new Tembereng(2.0, 5.0);
-        shapesCollection.add(Benda3DTembereng);
+        shapesCollection.add(new Tembereng(2.0, 5.0));
         
         output.append("    ✓ CincinElips (3D)\n");
-        BendaGeometri Benda3DCincin = new CincinElips(5.0, 2.0, 1.0);
-        shapesCollection.add(Benda3DCincin);
+        shapesCollection.add(new CincinElips(5.0, 2.0, 1.0));
         
         output.append("\n[2] Semua objek disimpan dalam List<BendaGeometri> (REFERENCE TYPE)\n");
         output.append("    dengan ACTUAL TYPE yang berbeda-beda\n\n");
@@ -1126,7 +1988,6 @@ public class GeometryGUI implements ActionListener {
         
         int index = 1;
         for (BendaGeometri shape : shapesCollection) {
-            // ← POLIMORFISME! Memanggil method yang sama pada tipe berbeda
             output.append("───────────────────────────────────────────────────────────────\n");
             output.append("Geometry Shape #").append(index).append(" (Tipe Geometri: ")
                   .append(shape.getClass().getSimpleName()).append(")\n");
@@ -1137,6 +1998,96 @@ public class GeometryGUI implements ActionListener {
         
         resultArea.setText(output.toString());
         statusLabel.setText("Demo Polimorfisme selesai! Lihat hasil di atas.");
+    }
+
+    private void showHistoryDialog() {
+        JDialog dialog = new JDialog(frame, "History Perhitungan", true);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        DefaultListModel<String> model = new DefaultListModel<>();
+        JList<String> list = new JList<>(model);
+        list.setFont(new Font("Consolas", Font.PLAIN, 12));
+        
+        java.util.List<GeometryCalculator.CalculationRecord> records = calculator.getHistory();
+        if (records.isEmpty()) {
+            model.addElement("=== HISTORY KOSONG ===");
+            model.addElement("Lakukan perhitungan untuk menambah history");
+        } else {
+            model.addElement("=== HISTORY PERHITUNGAN ===");
+            for (GeometryCalculator.CalculationRecord record : records) {
+                model.addElement(record.toString());
+            }
+        }
+        
+        JScrollPane scrollPane = new JScrollPane(list);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JButton btnClose = new JButton("Tutup");
+        btnClose.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(btnClose);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.getContentPane().add(panel);
+        dialog.setSize(600, 400);
+        dialog.setLocationRelativeTo(frame);
+        dialog.setVisible(true);
+    }
+
+    private void showAboutDialog() {
+        JDialog dialog = new JDialog(frame, "About", true);
+        dialog.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JTextArea aboutText = new JTextArea();
+        aboutText.setEditable(false);
+        aboutText.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        aboutText.setBackground(new Color(245, 245, 245));
+        aboutText.setText("""
+                ================================================
+                        APLIKASI PERHITUNGAN BENDA GEOMETRI
+                ================================================
+
+                Aplikasi ini dapat menghitung berbagai benda geometri:
+
+                - Benda 2 Dimensi:
+                  • Elips
+                  • Juring Elips (2D)
+                  • Tembereng Elips (2D)
+                  • Cincin Elips (2D)
+
+                - Benda 3 Dimensi (Limas):
+                  • Kerucut dengan alas elips
+                  • Kerucut terpancung dengan alas elips
+
+                - Benda 3 Dimensi (Prisma):
+                  • Tabung dengan alas elips
+                  • Bola elips
+                  • Juring bola (3D)
+                  • Tembereng bola (3D)
+                  • Cincin dengan pola dasar elips (Torus)
+
+                © 2026 - Proyek PBO Kelompok 3
+                Versi 1.0""");
+        
+        JScrollPane scroll = new JScrollPane(aboutText);
+        panel.add(scroll, BorderLayout.CENTER);
+        
+        JPanel buttonPanel = new JPanel();
+        JButton btnClose = new JButton("Tutup");
+        btnClose.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(btnClose);
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.getContentPane().add(panel);
+        dialog.setSize(560, 460);
+        dialog.setLocationRelativeTo(frame);
+        dialog.setVisible(true);
     }
 
     private void showError(String message) {

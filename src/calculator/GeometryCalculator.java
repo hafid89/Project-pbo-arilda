@@ -91,12 +91,12 @@ public class GeometryCalculator {
                 double result;
                 String resultType;
                 
-                if (shape instanceof Benda2Dimensi) {
+                if (shape instanceof VolumeCalculable) {
+                    result = ((VolumeCalculable) shape).hitungVolume();
+                    resultType = "Volume";
+                } else if (shape instanceof Benda2Dimensi) {
                     result = shape.hitungLuas();
                     resultType = "Luas";
-                } else if (shape instanceof Benda3Dimensi) {
-                    result = ((Benda3Dimensi) shape).hitungVolume();
-                    resultType = "Volume";
                 } else {
                     result = shape.hitungLuas();
                     resultType = "Luas";

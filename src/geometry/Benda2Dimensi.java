@@ -4,14 +4,11 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
-/**
- * Abstract class untuk benda 2 dimensi
- * Inheritance dari BendaGeometri
- */
 public abstract class Benda2Dimensi extends BendaGeometri {
     
-    protected double luas;
-    protected double keliling;
+    public double luas;
+    public double keliling;
+    
     
     public Benda2Dimensi(String nama) {
         super(nama);

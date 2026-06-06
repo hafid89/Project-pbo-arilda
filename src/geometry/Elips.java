@@ -13,6 +13,8 @@ public class Elips extends Benda2Dimensi {
     
     private double sumbuPanjang;  // sumbu mayor (a)
     private double sumbuPendek;   // sumbu minor (b)
+    protected double volume;
+    protected double luasPermukaan;
     private static final double PI = Math.PI;
     
     // Constructor overloading
@@ -33,7 +35,6 @@ public class Elips extends Benda2Dimensi {
         return sumbuPanjang;
     }
     
-    // setter 
     public void setSumbuPanjang(double sumbuPanjang) throws GeometryException {
         if (sumbuPanjang <= 0) {
             throw new GeometryException("Sumbu panjang harus > 0", GeometryException.NEGATIVE_VALUE);
@@ -77,6 +78,15 @@ public class Elips extends Benda2Dimensi {
         // Rumus Ramanujan
         keliling = PI * (3 * (a + b) - Math.sqrt((3 * a + b) * (a + 3 * b)));
         return keliling;
+    }
+    
+    // untuk child class
+    public double hitungVolume() {
+        return 0;
+    }
+    
+    public double hitungLuasPermukaan() {
+        return hitungLuas();
     }
     
     /**
@@ -127,5 +137,24 @@ public class Elips extends Benda2Dimensi {
     public String toString() {
         return String.format("Elips(a=%.2f, b=%.2f, luas=%.2f, keliling=%.2f)", 
                             sumbuPanjang, sumbuPendek, luas, keliling);
+    }
+
+    public Thread createThread() {
+        Thread thread = new Thread(this, getNama() + "-Thread");
+        thread.setDaemon(true);
+        return thread;
+    }
+
+    // Mulai worker khusus untuk kelas ini dan (opsional) interupsi instance lain
+    public void startWorkerAndMaybeInterrupt(BendaGeometri other) {
+        startWorker();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        if (other != null) {
+            interruptOther(other);
+        }
     }
 }

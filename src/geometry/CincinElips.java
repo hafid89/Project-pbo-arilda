@@ -5,7 +5,7 @@ package geometry;
  * Benda 3 Dimensi
  * Contoh OOP dengan Encapsulation
  */
-public class CincinElips extends Benda3Dimensi {
+public class CincinElips extends BolaElips {
 
     // =========================
     // ENCAPSULATION (private)
@@ -42,7 +42,8 @@ public class CincinElips extends Benda3Dimensi {
                        double semiMayor,
                        double semiMinor) {
 
-        super("Cincin Elips (Elliptic Torus)");
+        super();
+        setNama("Cincin Elips (Elliptic Torus)");
 
         // menggunakan setter agar tervalidasi
         setRadiusUtama(radiusUtama);
@@ -149,33 +150,31 @@ public class CincinElips extends Benda3Dimensi {
         return volume;
     }
 
-    // =========================
-    // Perhitungan Luas Permukaan
-    // =========================
-
-    /**
-     * Menghitung luas permukaan cincin elips
-     *
-     * Pendekatan:
-     * L ≈ 4π²R √((a²+b²)/2)
-     */
     @Override
     public double hitungLuasPermukaan() {
 
-        double pendekatanElips =
-            Math.sqrt(
-                (
-                    Math.pow(semiMayor, 2)
-                    +
-                    Math.pow(semiMinor, 2)
-                ) / 2.0
-            );
+        // Keliling elips penampang (Ramanujan)
+        double a = semiMayor;
+        double b = semiMinor;
 
+        double kelilingElips =
+                PI *
+                (
+                    3 * (a + b)
+                    -
+                    Math.sqrt(
+                        (3 * a + b)
+                        *
+                        (a + 3 * b)
+                    )
+                );
+
+        // Teorema Pappus:
+        // Luas = keliling penampang × lintasan centroid
         luasPermukaan =
-            4 *
-            Math.pow(PI, 2) *
-            radiusUtama *
-            pendekatanElips;
+                kelilingElips
+                *
+                (2 * PI * radiusUtama);
 
         return luasPermukaan;
     }
@@ -188,16 +187,11 @@ public class CincinElips extends Benda3Dimensi {
         return hitungLuasPermukaan();
     }
 
-    /**
-     * Keliling pendekatan
-     */
     @Override
     public double hitungKeliling() {
 
-        return
-            2 *
-            PI *
-            (radiusUtama + semiMayor);
+        // Keliling lintasan utama torus
+        return 2 * PI * radiusUtama;
     }
 
     // =========================
@@ -229,6 +223,12 @@ public class CincinElips extends Benda3Dimensi {
         );
     }
 
+    public Thread createThread() {
+        Thread thread = new Thread(this, getNama() + "-Thread");
+        thread.setDaemon(true);
+        return thread;
+    }
+
     // =========================
     // Main Testing
     // =========================
@@ -256,5 +256,15 @@ public class CincinElips extends Benda3Dimensi {
 
         System.out.println("=== Setelah Diubah ===");
         System.out.println(c1.info());
+    }
+
+    public void startWorkerAndMaybeInterrupt(BendaGeometri other) {
+        startWorker();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        if (other != null) interruptOther(other);
     }
 }

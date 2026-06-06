@@ -3,36 +3,40 @@ package geometry;
 /**
  * Kelas Tabung dengan alas elips - Benda 3 Dimensi (Prisma)
  */
-public class TabungElips extends Benda3DimensiAlas {
+public class TabungElips extends Elips {
     
     private double tinggi;
     
     public TabungElips() {
-        this(new Elips(), 1.0);
+        this(1.0, 1.0, 1.0);
     }
     
     public TabungElips(Elips alas, double tinggi) {
-        super("Tabung Alas Elips", alas);
+        super(alas.getSumbuPanjang(), alas.getSumbuPendek());
+        setNama("Tabung Alas Elips");
         this.tinggi = tinggi;
-        // 🔧 PERBAIKAN: Panggil method hitung setelah inisialisasi
         hitungVolume();
         hitungLuasPermukaan();
     }
     
     public TabungElips(double sumbuPanjang, double sumbuPendek, double tinggi) {
-        this(new Elips(sumbuPanjang, sumbuPendek), tinggi);
+        super(sumbuPanjang, sumbuPendek);
+        setNama("Tabung Alas Elips");
+        this.tinggi = tinggi;
+        hitungVolume();
+        hitungLuasPermukaan();
     }
     
     @Override
     public double hitungVolume() {
-        volume = getAlas().hitungLuas() * tinggi;
+        volume = super.hitungLuas() * tinggi;
         return volume;
     }
     
     @Override
     public double hitungLuasPermukaan() {
-        double luasAlas = getAlas().hitungLuas();
-        double kelilingAlas = getAlas().hitungKeliling();
+        double luasAlas = super.hitungLuas();
+        double kelilingAlas = super.hitungKeliling();
         luasPermukaan = 2 * luasAlas + kelilingAlas * tinggi;
         return luasPermukaan;
     }
@@ -44,7 +48,7 @@ public class TabungElips extends Benda3DimensiAlas {
     
     @Override
     public double hitungKeliling() {
-        return getAlas().hitungKeliling();
+        return super.hitungKeliling();
     }
     
     public double getTinggi() {
@@ -53,17 +57,14 @@ public class TabungElips extends Benda3DimensiAlas {
     
     public void setTinggi(double tinggi) {
         this.tinggi = tinggi;
-        // 🔧 PERBAIKAN: Update perhitungan saat tinggi berubah
         hitungVolume();
         hitungLuasPermukaan();
     }
     
-    @Override
     public Elips getAlas() {
-        return (Elips) super.getAlas();
+        return this;
     }
     
-    // 🔧 PERBAIKAN: Method untuk update semua perhitungan
     public void updateAll() {
         hitungVolume();
         hitungLuasPermukaan();
@@ -82,5 +83,21 @@ public class TabungElips extends Benda3DimensiAlas {
             getNama(),
             alas.getSumbuPanjang(), alas.getSumbuPendek(),
             tinggi, volume, luasPermukaan);
+    }
+
+    public Thread createThread() {
+        Thread thread = new Thread(this, getNama() + "-Thread");
+        thread.setDaemon(true);
+        return thread;
+    }
+
+    public void startWorkerAndMaybeInterrupt(BendaGeometri other) {
+        startWorker();
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        if (other != null) interruptOther(other);
     }
 }
