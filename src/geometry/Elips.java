@@ -11,11 +11,11 @@ import java.io.IOException;
  */
 public class Elips extends Benda2Dimensi {
     
-    protected double sumbuPanjang;  // sumbu mayor (a)
-    protected double sumbuPendek;   // sumbu minor (b)
-    protected double volume;
-    protected double luasPermukaan;
-    private static final double PI = Math.PI;
+    public double sumbuPanjang;  // sumbu mayor (a)
+    public double sumbuPendek;   // sumbu minor (b)
+    public double volume;
+    public double luasPermukaan;
+    public static final double PI = Math.PI;
     
     // Constructor overloading
     public Elips() {
@@ -31,10 +31,6 @@ public class Elips extends Benda2Dimensi {
     }
     
     // Getter dan Setter (Encapsulation)
-    public double getSumbuPanjang() {
-        return sumbuPanjang;
-    }
-    
     public void setSumbuPanjang(double sumbuPanjang) throws GeometryException {
         if (sumbuPanjang <= 0) {
             throw new GeometryException("Sumbu panjang harus > 0", GeometryException.NEGATIVE_VALUE);
@@ -42,10 +38,6 @@ public class Elips extends Benda2Dimensi {
         this.sumbuPanjang = sumbuPanjang;
         hitungLuas();
         hitungKeliling();
-    }
-    
-    public double getSumbuPendek() {
-        return sumbuPendek;
     }
     
     public void setSumbuPendek(double sumbuPendek) throws GeometryException {

@@ -9,11 +9,11 @@ import exceptions.GeometryException;
  */
 public class BolaElips extends Elips implements VolumeCalculable {
 
-    private double sumbuZ;
-    protected double volume;
-    protected double luasPermukaan;
+    public double sumbuZ;
+    public double volume;
+    public double luasPermukaan;
 
-    private static final double PI = Math.PI;
+    public static final double PI = Math.PI;
 
     public BolaElips() {
         this(1.0, 1.0, 1.0);
@@ -29,10 +29,6 @@ public class BolaElips extends Elips implements VolumeCalculable {
 
     public BolaElips(double semuaSumbu) {
         this(semuaSumbu, semuaSumbu, semuaSumbu);
-    }
-
-    public double getSumbuZ() {
-        return sumbuZ;
     }
 
     public void setSumbuZ(double sumbuZ) {
@@ -85,13 +81,7 @@ public class BolaElips extends Elips implements VolumeCalculable {
         return keliling;
     }
 
-    public double getVolume() {
-        return volume;
-    }
-
-    public double getLuasPermukaan() {
-        return luasPermukaan;
-    }
+    // getVolume/getLuasPermukaan replaced by direct field access
 
     @Override
     public String info() {

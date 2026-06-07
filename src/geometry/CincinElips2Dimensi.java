@@ -12,9 +12,9 @@ import java.io.IOException;
  */
 public class CincinElips2Dimensi extends Elips {
     
-    private double sumbuPanjang2;  // sumbu mayor elips dalam (a2)
-    private double sumbuPendek2;   // sumbu minor elips dalam (b2)
-    private static final double PI = Math.PI;
+    public double sumbuPanjang2;  // sumbu mayor elips dalam (a2)
+    public double sumbuPendek2;   // sumbu minor elips dalam (b2)
+    public static final double PI = Math.PI;
     
     // Constructor overloading
     public CincinElips2Dimensi() throws GeometryException {
@@ -30,9 +30,7 @@ public class CincinElips2Dimensi extends Elips {
     }
     
     // Getter dan Setter untuk Elips Dalam (Encapsulation)
-    public double getSumbuPanjang2() {
-        return sumbuPanjang2;
-    }
+    // getSumbuPanjang2 removed; use direct field access
     
     public void setSumbuPanjang2(double sumbuPanjang2) throws GeometryException {
         if (sumbuPanjang2 <= 0) {
@@ -47,9 +45,7 @@ public class CincinElips2Dimensi extends Elips {
         hitungKeliling();
     }
     
-    public double getSumbuPendek2() {
-        return sumbuPendek2;
-    }
+    // getSumbuPendek2 removed; use direct field access
     
     public void setSumbuPendek2(double sumbuPendek2) throws GeometryException {
         if (sumbuPendek2 <= 0) {

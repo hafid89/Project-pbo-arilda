@@ -8,9 +8,9 @@ import exceptions.GeometryException;
  */
 public class KerucutElips extends Elips {
     
-    private double tinggi;
-    private double garisPelukis;
-    private static final double PI = Math.PI;
+    public double tinggi;
+    public double garisPelukis;
+    public static final double PI = Math.PI;
     
     // Constructor overloading
     public KerucutElips() {
@@ -40,18 +40,10 @@ public class KerucutElips extends Elips {
         hitungLuasPermukaan();
     }
     
-    public Elips getAlas() {
-        return this;
-    }
-    
     public void setAlas(Elips alas) throws GeometryException {
         setSumbuPanjang(alas.sumbuPanjang);
         setSumbuPendek(alas.sumbuPendek);
         updateAll();
-    }
-    
-    public double getTinggi() {
-        return tinggi;
     }
     
     public void setTinggi(double tinggi) throws GeometryException {
@@ -62,9 +54,6 @@ public class KerucutElips extends Elips {
         updateAll();
     }
     
-    public double getGarisPelukis() {
-        return garisPelukis;
-    }
     
     /**
      * Menghitung garis pelukis dengan rumus:
@@ -74,7 +63,7 @@ public class KerucutElips extends Elips {
      * s = sqrt((s1^2 + s2^2)/2) dengan s1 = sqrt(t^2 + a^2), s2 = sqrt(t^2 + b^2)
      */
     public double hitungGarisPelukis() {
-        Elips alas = getAlas();
+        Elips alas = this;
         double a = alas.sumbuPanjang;
         double b = alas.sumbuPendek;
         
@@ -97,7 +86,7 @@ public class KerucutElips extends Elips {
      * Untuk akurasi lebih tinggi, keliling seharusnya menggunakan pendekatan Ramanujan
      */
     public double hitungLuasSelimut() {
-        Elips alas = getAlas();
+        Elips alas = this;
         double a = alas.sumbuPanjang;
         double b = alas.sumbuPendek;
         double s = hitungGarisPelukis();  // menggunakan rumus baru
@@ -133,7 +122,7 @@ public class KerucutElips extends Elips {
         // Pastikan nilai terbaru sebelum menampilkan info
         updateAll();
         
-        Elips alas = getAlas();
+        Elips alas = this;
         return String.format("""
             === %s ===
             Alas Elips: a=%.4f, b=%.4f

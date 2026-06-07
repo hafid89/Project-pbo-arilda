@@ -10,8 +10,8 @@ import java.io.IOException;
  */
 public abstract class Benda2Dimensi extends BendaGeometri {
     
-    protected double luas;
-    protected double keliling;
+    public double luas;
+    public double keliling;
     
     
     public Benda2Dimensi(String nama) {

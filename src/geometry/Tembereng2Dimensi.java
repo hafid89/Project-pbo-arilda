@@ -11,7 +11,7 @@ import java.io.IOException;
  */
 public class Tembereng2Dimensi extends Juring2Dimensi {
 
-    private static final double PI = Math.PI;
+    public static final double PI = Math.PI;
 
     public Tembereng2Dimensi() throws GeometryException {
         this(1.0, 1.0, 90.0);
@@ -54,7 +54,7 @@ public class Tembereng2Dimensi extends Juring2Dimensi {
      */
     private double hitungLuasSegitiga() {
 
-        double theta = Math.toRadians(getSudutJuring());
+        double theta = Math.toRadians(sudutJuring);
 
         double r1 = hitungJariJariSudut(-theta / 2.0);
         double r2 = hitungJariJariSudut(theta / 2.0);
@@ -78,7 +78,7 @@ public class Tembereng2Dimensi extends Juring2Dimensi {
      */
     public double hitungPanjangChord() {
 
-        double theta = Math.toRadians(getSudutJuring());
+        double theta = Math.toRadians(sudutJuring);
 
         double r1 = hitungJariJariSudut(-theta / 2.0);
         double r2 = hitungJariJariSudut(theta / 2.0);
@@ -94,7 +94,7 @@ public class Tembereng2Dimensi extends Juring2Dimensi {
      */
     public double hitungTinggiTembereng() {
 
-        double theta = Math.toRadians(getSudutJuring());
+        double theta = Math.toRadians(sudutJuring);
 
         double r = hitungJariJariSudut(0);
 
@@ -138,7 +138,7 @@ public class Tembereng2Dimensi extends Juring2Dimensi {
                 getNama(),
                 sumbuPanjang,
                 sumbuPendek,
-                getSudutJuring(),
+                sudutJuring,
                 luas,
                 keliling,
                 hitungPanjangBusur(),
@@ -154,7 +154,7 @@ public class Tembereng2Dimensi extends Juring2Dimensi {
                 "Tembereng2Dimensi,%.4f,%.4f,%.2f,%.4f,%.4f,%.4f",
                 sumbuPanjang,
                 sumbuPendek,
-                getSudutJuring(),
+                sudutJuring,
                 luas,
                 keliling,
                 hitungPanjangChord());
@@ -177,7 +177,7 @@ public class Tembereng2Dimensi extends Juring2Dimensi {
                 "Tembereng2Dimensi(a=%.2f, b=%.2f, sudut=%.2f°, luas=%.2f, keliling=%.2f)",
                 sumbuPanjang,
                 sumbuPendek,
-                getSudutJuring(),
+                sudutJuring,
                 luas,
                 keliling);
     }

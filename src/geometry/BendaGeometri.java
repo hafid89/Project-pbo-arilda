@@ -15,11 +15,11 @@ import java.util.concurrent.Future;
  */
 public abstract class BendaGeometri implements Runnable {
     
-    // Encapsulation - Attribute dengan private modifier
-    private String nama;  // hiding information yang akan diakses getter setter
-    private static int totalObjek = 0;
-    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+    // Attributes made public per refactor
+    public String nama;  // hiding information yang will still have synchronized accessors
+    public static int totalObjek = 0;
+    public static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
+    public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     
     // Constructor overloading
     public BendaGeometri() {

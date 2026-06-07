@@ -12,13 +12,13 @@ public class CincinElips extends BolaElips {
     // =========================
 
     // Radius utama torus (R)
-    private double radiusUtama;
+    public double radiusUtama;
 
     // Semi-sumbu elips
-    private double semiMayor;
-    private double semiMinor;
+    public double semiMayor;
+    public double semiMinor;
 
-    private static final double PI = Math.PI;
+    public static final double PI = Math.PI;
 
     // =========================
     // Constructor
@@ -61,9 +61,7 @@ public class CincinElips extends BolaElips {
     /**
      * Getter radius utama
      */
-    public double getRadiusUtama() {
-        return radiusUtama;
-    }
+    // Getter radius utama removed; use direct field access
 
     /**
      * Setter radius utama
@@ -84,9 +82,7 @@ public class CincinElips extends BolaElips {
     /**
      * Getter semi mayor
      */
-    public double getSemiMayor() {
-        return semiMayor;
-    }
+    // Getter semi mayor removed; use direct field access
 
     /**
      * Setter semi mayor
@@ -107,9 +103,7 @@ public class CincinElips extends BolaElips {
     /**
      * Getter semi minor
      */
-    public double getSemiMinor() {
-        return semiMinor;
-    }
+    // Getter semi minor removed; use direct field access
 
     /**
      * Setter semi minor

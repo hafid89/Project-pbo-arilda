@@ -6,7 +6,7 @@ package geometry;
  */
 public class Tembereng extends Juring {
 
-    private static final double PI = Math.PI;
+    public static final double PI = Math.PI;
 
     public Tembereng() {
         this(1.0, PI, 0.5);
@@ -27,14 +27,10 @@ public class Tembereng extends Juring {
     }
 
     public Tembereng(Juring juring) {
-        super(juring.getJariJari(), juring.getSudut(), juring.getTinggiPrisma());
+        super(juring.jariJari, juring.sudut, juring.tinggi);
         setNama("Tembereng Bola");
         hitungVolume();
         hitungLuasPermukaan();
-    }
-
-    public double getTinggi() {
-        return tinggi;
     }
 
     // Setter tinggi menggunakan nilai dari Juring
@@ -46,12 +42,6 @@ public class Tembereng extends Juring {
             this.tinggi = 1;
         }
     }
-
-    // Getter radius bola berdasarkan nilai jari-jari Juring
-    public double getRadiusBola() {
-        return jariJari;
-    }
-
     // Setter radius bola menggunakan nilai jari-jari Juring
     public void setRadiusBola(double radiusBola) {
         if (radiusBola > 0) {

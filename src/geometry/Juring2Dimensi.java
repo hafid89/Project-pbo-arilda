@@ -12,8 +12,8 @@ import java.io.IOException;
  */
 public class Juring2Dimensi extends Elips {
     
-    private double sudutJuring;  // sudut dalam derajat (0-360)
-    private static final double PI = Math.PI;
+    public double sudutJuring;  // sudut dalam derajat (0-360)
+    public static final double PI = Math.PI;
     
     // Constructor overloading
     public Juring2Dimensi() throws GeometryException {
@@ -27,10 +27,6 @@ public class Juring2Dimensi extends Elips {
     }
     
     // Getter dan Setter untuk Sudut Juring (Encapsulation)
-    public double getSudutJuring() {
-        return sudutJuring;
-    }
-    
     public void setSudutJuring(double sudutJuring) throws GeometryException {
         if (sudutJuring <= 0 || sudutJuring > 360) {
             throw new GeometryException("Sudut juring harus antara 0 dan 360 derajat", GeometryException.NEGATIVE_VALUE);

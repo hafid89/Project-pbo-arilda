@@ -8,10 +8,10 @@ import exceptions.GeometryException;
  */
 public class KerucutTerpancung extends KerucutElips {
     
-    private double jariJariAtas;
-    private Elips alasAtas;
-    private boolean isInitialized;  // Flag untuk menandai objek sudah siap
-    private static final double PI = Math.PI;
+    public double jariJariAtas;
+    public Elips alasAtas;
+    public boolean isInitialized;  // Flag untuk menandai objek sudah siap
+    public static final double PI = Math.PI;
     
     public KerucutTerpancung() {
         this(1.0, 1.0, 1.0, 0.5);
@@ -41,15 +41,13 @@ public class KerucutTerpancung extends KerucutElips {
         hitungLuasPermukaan();
     }
     
-    public double getJariJariAtas() {
-        return jariJariAtas;
-    }
+    // Access jariJariAtas directly as a public field
     
     public void setJariJariAtas(double jariJariAtas) throws GeometryException {
         if (jariJariAtas <= 0) {
             throw new GeometryException("Jari-jari atas harus > 0", GeometryException.NEGATIVE_VALUE);
         }
-        if (jariJariAtas >= Math.min(getAlas().sumbuPanjang, getAlas().sumbuPendek)) {
+        if (jariJariAtas >= Math.min(this.sumbuPanjang, this.sumbuPendek)) {
             throw new GeometryException("Jari-jari atas harus lebih kecil dari jari-jari alas", 
                                        GeometryException.INVALID_INPUT);
         }
@@ -73,7 +71,7 @@ public class KerucutTerpancung extends KerucutElips {
         double luasAlasAtas = a2 * b2;
         double luasTengah = Math.sqrt(luasAlasBawah * luasAlasAtas);
         
-        volume = (PI * getTinggi() / 3.0) * (luasAlasBawah + luasAlasAtas + luasTengah);
+        volume = (PI * this.tinggi / 3.0) * (luasAlasBawah + luasAlasAtas + luasTengah);
         return volume;
     }
     
@@ -94,12 +92,12 @@ public class KerucutTerpancung extends KerucutElips {
     
     public double hitungLuasSelimutTerpancung() {
         // Menggunakan radius efektif geometric mean untuk akurasi lebih baik
-        Elips alasBawah = getAlas();
+        Elips alasBawah = this;
         double radiusBawah = Math.sqrt(alasBawah.sumbuPanjang * alasBawah.sumbuPendek);
         double radiusAtas = jariJariAtas;
         
         // Garis pelukis (selimut)
-        double s = Math.sqrt(Math.pow(getTinggi(), 2) + Math.pow(radiusBawah - radiusAtas, 2));
+        double s = Math.sqrt(Math.pow(this.tinggi, 2) + Math.pow(radiusBawah - radiusAtas, 2));
         
         // Luas selimut kerucut terpancung
         return PI * (radiusBawah + radiusAtas) * s;
@@ -114,7 +112,7 @@ public class KerucutTerpancung extends KerucutElips {
     }
     
     public double getRadiusEfektifBawah() {
-        Elips alasBawah = getAlas();
+        Elips alasBawah = this;
         return Math.sqrt(alasBawah.sumbuPanjang * alasBawah.sumbuPendek);
     }
     
@@ -124,7 +122,7 @@ public class KerucutTerpancung extends KerucutElips {
     
     @Override
     public String info() {
-        Elips alasBawah = getAlas();
+        Elips alasBawah = this;
         double radiusEfektifBawah = getRadiusEfektifBawah();
         double radiusEfektifAtas = jariJariAtas;
         
@@ -141,7 +139,7 @@ public class KerucutTerpancung extends KerucutElips {
             getNama(),
             alasBawah.sumbuPanjang, alasBawah.sumbuPendek, radiusEfektifBawah,
             radiusEfektifAtas, hitungLuasAlasAtas(),
-            getTinggi(), volume, luasPermukaan, hitungLuasSelimutTerpancung(),
+            this.tinggi, volume, luasPermukaan, hitungLuasSelimutTerpancung(),
             radiusEfektifAtas / radiusEfektifBawah);
     }
 
@@ -155,9 +153,9 @@ public class KerucutTerpancung extends KerucutElips {
     public boolean isValid() {
         return isInitialized && 
                alasAtas != null && 
-               getAlas() != null && 
-               getTinggi() > 0 && 
+               this != null && 
+               this.tinggi > 0 && 
                jariJariAtas > 0 &&
-               jariJariAtas < Math.min(getAlas().sumbuPanjang, getAlas().sumbuPendek);
+               jariJariAtas < Math.min(this.sumbuPanjang, this.sumbuPendek);
     }
 }

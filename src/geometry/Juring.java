@@ -6,11 +6,11 @@ package geometry;
  */
 public class Juring extends BolaElips {
 
-    protected double jariJari;
-    protected double sudut; // radian
-    protected double tinggi;
+    public double jariJari;
+    public double sudut; // radian
+    public double tinggi;
 
-    private static final double PI = Math.PI;
+    public static final double PI = Math.PI;
 
     public Juring() {
         this(3.0, PI / 2, 5.0);
@@ -114,15 +114,5 @@ public class Juring extends BolaElips {
         return thread;
     }
 
-    public double getJariJari() {
-        return jariJari;
-    }
-
-    public double getSudut() {
-        return sudut;
-    }
-
-    public double getTinggiPrisma() {
-        return tinggi;
-    }
+    // Access fields directly: jariJari, sudut, tinggi
 }

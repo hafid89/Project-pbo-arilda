@@ -385,8 +385,8 @@ public class GeometryGUI implements ActionListener {
 
                     Elips alas = getElipsFromPanel();
 
-                    a = alas.getSumbuPanjang();
-                    b = alas.getSumbuPendek();
+                    a = alas.sumbuPanjang;
+                    b = alas.sumbuPendek;
 
                 } else {
 
@@ -507,7 +507,7 @@ public class GeometryGUI implements ActionListener {
                 double t = Double.parseDouble(tfTinggiKerucutTerpancung.getText().trim());
                 double r = Double.parseDouble(tfJariJariAtas.getText().trim());
                 Elips alas = resolveElipsBase(cbUseElipsBaseForKerucutTerp.isSelected(), tfOverrideA, tfOverrideB);
-                calculateKerucutTerpancung(alas.getSumbuPanjang(), alas.getSumbuPendek(), t, r);
+                calculateKerucutTerpancung(alas.sumbuPanjang, alas.sumbuPendek, t, r);
             } catch (NumberFormatException ex) {
                 showError("Input harus berupa angka yang valid dan lebih dari 0!");
             }
@@ -698,8 +698,8 @@ public class GeometryGUI implements ActionListener {
                         return;
                     }
                     Elips elips = getElipsFromPanel();
-                    a = elips.getSumbuPanjang();
-                    b = elips.getSumbuPendek();
+                    a = elips.sumbuPanjang;
+                    b = elips.sumbuPendek;
                 } else {
                     a = Double.parseDouble(tfBolaOverrideA.getText().trim());
                     b = Double.parseDouble(tfBolaOverrideB.getText().trim());
@@ -791,7 +791,7 @@ public class GeometryGUI implements ActionListener {
                 double r;
                 if (cbUseBolaBaseForJuring3D.isSelected()) {
                     BolaElips bola = getBolaFromPanel();
-                    r = bola.getSumbuPanjang();
+                    r = bola.sumbuPanjang;
                 } else {
                     r = Double.parseDouble(tfR.getText());
                 }
@@ -876,7 +876,7 @@ public class GeometryGUI implements ActionListener {
                         Tembereng tem = new Tembereng(lastJuring3DCalculation);
                         calculateShape(tem,
                                 String.format("r=%.2f, sudut=%.4f rad (%.2f°), t=%.2f",
-                                        tem.getRadiusBola(), tem.getSudut(), Math.toDegrees(tem.getSudut()), tem.getTinggiPrisma()),
+                                            tem.jariJari, tem.sudut, Math.toDegrees(tem.sudut), tem.tinggi),
                                 "Tembereng");
                     } else {
                         showError("Belum ada perhitungan Juring (3D). Hitung terlebih dahulu pada tab Juring (3D)." );
@@ -970,8 +970,8 @@ public class GeometryGUI implements ActionListener {
 
                 if (cbUseBolaBaseForCincin3D.isSelected()) {
                     BolaElips bola = getBolaFromPanel();
-                    a = bola.getSumbuPanjang();
-                    b = bola.getSumbuPendek();
+                    a = bola.sumbuPanjang;
+                    b = bola.sumbuPendek;
                 } else {
                     a = Double.parseDouble(tfJariJariDalam.getText().trim());
                     b = Double.parseDouble(tfB.getText().trim());
@@ -1061,8 +1061,8 @@ public class GeometryGUI implements ActionListener {
         btnHitung.addActionListener(e -> {
             try {
                 Elips basis = resolveElipsBase(cbUseElipsBaseForJuring2D.isSelected(), tfAOverride, tfBOverride);
-                double a = basis.getSumbuPanjang();
-                double b = basis.getSumbuPendek();
+                double a = basis.sumbuPanjang;
+                double b = basis.sumbuPendek;
                 double sudut = Double.parseDouble(tfTheta.getText().trim());
                 calculateJuring2D(a, b, sudut);
             } catch (NumberFormatException ex) {
@@ -1112,12 +1112,12 @@ public class GeometryGUI implements ActionListener {
                     showError("Belum ada perhitungan Juring 2D. Hitung terlebih dahulu pada tab Juring (2D).");
                     cbUseJuringDataFromPanelForTembereng2D.setSelected(false);
                 } else {
-                    tfTheta.setText(String.format("%.2f", lastJuring2DCalculation.getSudutJuring()));
+                    tfTheta.setText(String.format("%.2f", lastJuring2DCalculation.sudutJuring));
                     if (tfAOverride.getText().trim().isEmpty()) {
-                        tfAOverride.setText(String.format("%.2f", lastJuring2DCalculation.getSumbuPanjang()));
+                        tfAOverride.setText(String.format("%.2f", lastJuring2DCalculation.sumbuPanjang));
                     }
                     if (tfBOverride.getText().trim().isEmpty()) {
-                        tfBOverride.setText(String.format("%.2f", lastJuring2DCalculation.getSumbuPendek()));
+                        tfBOverride.setText(String.format("%.2f", lastJuring2DCalculation.sumbuPendek));
                     }
                 }
             }
@@ -1165,7 +1165,7 @@ public class GeometryGUI implements ActionListener {
                         showError("Belum ada perhitungan Juring 2D. Hitung terlebih dahulu pada tab Juring (2D).");
                         return;
                     }
-                    a = lastJuring2DCalculation.getSumbuPanjang();
+                    a = lastJuring2DCalculation.sumbuPanjang;
                 } else {
                     throw new NumberFormatException();
                 }
@@ -1177,7 +1177,7 @@ public class GeometryGUI implements ActionListener {
                         showError("Belum ada perhitungan Juring 2D. Hitung terlebih dahulu pada tab Juring (2D).");
                         return;
                     }
-                    b = lastJuring2DCalculation.getSumbuPendek();
+                    b = lastJuring2DCalculation.sumbuPendek;
                 } else {
                     throw new NumberFormatException();
                 }
@@ -1189,7 +1189,7 @@ public class GeometryGUI implements ActionListener {
                         showError("Belum ada perhitungan Juring 2D. Hitung terlebih dahulu pada tab Juring (2D).");
                         return;
                     }
-                    sudut = lastJuring2DCalculation.getSudutJuring();
+                    sudut = lastJuring2DCalculation.sudutJuring;
                 } else {
                     throw new NumberFormatException();
                 }
@@ -1290,8 +1290,8 @@ public class GeometryGUI implements ActionListener {
                 double b1;
                 if (cbUseElipsBaseForCincin2D.isSelected()) {
                     Elips basis = getElipsFromPanel();
-                    a1 = basis.getSumbuPanjang();
-                    b1 = basis.getSumbuPendek();
+                    a1 = basis.sumbuPanjang;
+                    b1 = basis.sumbuPendek;
                 } else {
                     a1 = Double.parseDouble(tfA1Override.getText().trim());
                     b1 = Double.parseDouble(tfB1Override.getText().trim());
@@ -1498,8 +1498,8 @@ public class GeometryGUI implements ActionListener {
         
         if (usePanel) {
             Elips elips = getElipsFromPanel();
-            a = elips.getSumbuPanjang();
-            b = elips.getSumbuPendek();
+            a = elips.sumbuPanjang;
+            b = elips.sumbuPendek;
         } else {
             a = Double.parseDouble(tfBolaOverrideA.getText().trim());
             b = Double.parseDouble(tfBolaOverrideB.getText().trim());
@@ -1533,14 +1533,14 @@ public class GeometryGUI implements ActionListener {
 
     private void calculateKerucutElips(Elips alas, double t) {
         try {
-            if (alas.getSumbuPanjang() <= 0 || alas.getSumbuPendek() <= 0 || t <= 0) {
+            if (alas.sumbuPanjang <= 0 || alas.sumbuPendek <= 0 || t <= 0) {
                 showError("Semua nilai harus > 0!");
                 return;
             }
 
-            KerucutElips kerucut = new KerucutElips(alas, t);
-            calculateShape(kerucut,
-                    String.format("a=%.2f, b=%.2f, t=%.2f", alas.getSumbuPanjang(), alas.getSumbuPendek(), t),
+                KerucutElips kerucut = new KerucutElips(alas, t);
+                calculateShape(kerucut,
+                    String.format("a=%.2f, b=%.2f, t=%.2f", alas.sumbuPanjang, alas.sumbuPendek, t),
                     "Kerucut Elips");
         } catch (Exception ex) {
             showError("Error: " + ex.getMessage());
@@ -1553,14 +1553,14 @@ public class GeometryGUI implements ActionListener {
     }
 
     private void calculateTabungElips(Elips alas, double t) {
-        if (alas.getSumbuPanjang() <= 0 || alas.getSumbuPendek() <= 0 || t <= 0) {
+        if (alas.sumbuPanjang <= 0 || alas.sumbuPendek <= 0 || t <= 0) {
             showError("Semua nilai harus > 0!");
             return;
         }
         TabungElips tabung = new TabungElips(alas, t);
         calculateShape(tabung,
-                String.format("a=%.2f, b=%.2f, t=%.2f", alas.getSumbuPanjang(), alas.getSumbuPendek(), t),
-                "Tabung Elips");
+            String.format("a=%.2f, b=%.2f, t=%.2f", alas.sumbuPanjang, alas.sumbuPendek, t),
+            "Tabung Elips");
     }
 
     private void calculateBolaElips(double a, double b, double c) {

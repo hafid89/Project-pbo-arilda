@@ -5,7 +5,7 @@ package geometry;
  */
 public class TabungElips extends Elips {
     
-    private double tinggi;
+    public double tinggi;
     
     public TabungElips() {
         this(1.0, 1.0, 1.0);
@@ -51,19 +51,12 @@ public class TabungElips extends Elips {
         return super.hitungKeliling();
     }
     
-    public double getTinggi() {
-        return tinggi;
-    }
-    
     public void setTinggi(double tinggi) {
         this.tinggi = tinggi;
         hitungVolume();
         hitungLuasPermukaan();
     }
     
-    public Elips getAlas() {
-        return this;
-    }
     
     public void updateAll() {
         hitungVolume();
@@ -72,7 +65,7 @@ public class TabungElips extends Elips {
     
     @Override
     public String info() {
-        Elips alas = getAlas();
+        Elips alas = this;
         return String.format("""
             === %s ===
             Alas Elips: a=%.4f, b=%.4f
