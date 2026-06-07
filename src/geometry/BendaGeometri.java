@@ -15,11 +15,11 @@ import java.util.concurrent.Future;
  */
 public abstract class BendaGeometri implements Runnable {
     
-    // Attributes made public per refactor
-    public String nama;  // hiding information yang will still have synchronized accessors
-    public static int totalObjek = 0;
-    public static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
-    public static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+    // Attributes: reverted to private with accessors
+    private String nama;  // hiding information accessed via synchronized accessors
+    private static int totalObjek = 0;
+    private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
     
     // Constructor overloading
     public BendaGeometri() {
@@ -47,6 +47,18 @@ public abstract class BendaGeometri implements Runnable {
     
     public static synchronized int getTotalObjek() {
         return totalObjek;
+    }
+
+    public static synchronized void setTotalObjek(int total) {
+        totalObjek = total;
+    }
+
+    public static ExecutorService getExecutorService() {
+        return EXECUTOR;
+    }
+
+    public static DateTimeFormatter getTimeFormatter() {
+        return TIME_FORMATTER;
     }
     
     // Abstract methods - harus diimplementasikan oleh subclass
