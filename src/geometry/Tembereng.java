@@ -2,27 +2,33 @@ package geometry;
 
 /**
  * Kelas Tembereng Bola - Benda 3 Dimensi
- * Contoh OOP dengan Encapsulation
+ * Contoh OOP dengan hubungan pewarisan terhadap Juring
  */
-public class Tembereng extends BolaElips {
-
-    private double tinggi;
-    private double radiusBola;
+public class Tembereng extends Juring {
 
     private static final double PI = Math.PI;
 
     public Tembereng() {
-        this(0.5, 1.0);
+        this(1.0, PI, 0.5);
     }
 
     public Tembereng(double tinggi, double radiusBola) {
-        super();
+        super(radiusBola, PI, tinggi);
         setNama("Tembereng Bola");
+        hitungVolume();
+        hitungLuasPermukaan();
+    }
 
-        // menggunakan setter agar tervalidasi
-        setTinggi(tinggi);
-        setRadiusBola(radiusBola);
+    public Tembereng(double jariJari, double sudut, double tinggi) {
+        super(jariJari, sudut, tinggi);
+        setNama("Tembereng Bola");
+        hitungVolume();
+        hitungLuasPermukaan();
+    }
 
+    public Tembereng(Juring juring) {
+        super(juring.getJariJari(), juring.getSudut(), juring.getTinggiPrisma());
+        setNama("Tembereng Bola");
         hitungVolume();
         hitungLuasPermukaan();
     }
@@ -31,7 +37,7 @@ public class Tembereng extends BolaElips {
         return tinggi;
     }
 
-    // Setter tinggi
+    // Setter tinggi menggunakan nilai dari Juring
     public void setTinggi(double tinggi) {
         if (tinggi > 0) {
             this.tinggi = tinggi;
@@ -41,25 +47,27 @@ public class Tembereng extends BolaElips {
         }
     }
 
-    // Getter radius bola
+    // Getter radius bola berdasarkan nilai jari-jari Juring
     public double getRadiusBola() {
-        return radiusBola;
+        return jariJari;
     }
 
-    // Setter radius bola
+    // Setter radius bola menggunakan nilai jari-jari Juring
     public void setRadiusBola(double radiusBola) {
         if (radiusBola > 0) {
-            this.radiusBola = radiusBola;
+            this.jariJari = radiusBola;
         } else {
             System.out.println("Radius bola harus lebih dari 0");
-            this.radiusBola = 1;
+            this.jariJari = 1;
         }
     }
 
     @Override
     public double hitungVolume() {
-        volume = (PI * Math.pow(tinggi, 2) / 3)
-                * (3 * radiusBola - tinggi);
+        double r = jariJari;
+        double h = tinggi;
+        double fullCapVolume = (PI * Math.pow(h, 2) / 3) * (3 * r - h);
+        volume = fullCapVolume * (sudut / (2 * PI));
 
         return volume;
     }
@@ -73,28 +81,14 @@ public class Tembereng extends BolaElips {
     @Override
     public double hitungLuasPermukaan() {
 
-        // Luas sisi lengkung tembereng bola
-        double luasLengkung =
-                2 * PI *
-                radiusBola *
-                tinggi;
+        // luas sisi lengkung berdasarkan jari-jari Juring
+        double luasLengkung = 2 * PI * jariJari * tinggi;
 
-        // Radius lingkaran alas tembereng
-        double radiusAlas =
-                Math.sqrt(
-                        (2 * radiusBola * tinggi)
-                        - (tinggi * tinggi)
-                );
+        // luas alas lingkaran
+        double luasAlas = PI * Math.pow(jariJari, 2);
 
-        // Luas alas lingkaran
-        double luasAlas =
-                PI *
-                radiusAlas *
-                radiusAlas;
-
-        luasPermukaan =
-                luasLengkung +
-                luasAlas;
+        double fullCapSurface = luasLengkung + luasAlas;
+        luasPermukaan = fullCapSurface * (sudut / (2 * PI));
 
         return luasPermukaan;
     }
@@ -106,15 +100,7 @@ public class Tembereng extends BolaElips {
 
     @Override
     public double hitungKeliling() {
-
-        // Radius lingkaran alas tembereng
-        double radiusAlas =
-                Math.sqrt(
-                        (2 * radiusBola * tinggi)
-                        - (tinggi * tinggi)
-                );
-
-        return 2 * PI * radiusAlas;
+        return 2 * PI * jariJari;
     }
 
     @Override
@@ -124,12 +110,15 @@ public class Tembereng extends BolaElips {
                 === %s ===
                 Tinggi Tembereng: %.4f
                 Radius Bola: %.4f
+                Sudut Juring: %.4f rad (%.2f°)
                 Volume: %.4f satuan volume
                 Luas Permukaan: %.4f satuan luas
                 """,
                 getNama(),
                 tinggi,
-                radiusBola,
+                jariJari,
+                sudut,
+                Math.toDegrees(sudut),
                 volume,
                 luasPermukaan);
     }

@@ -6,9 +6,9 @@ package geometry;
  */
 public class Juring extends BolaElips {
 
-    private double jariJari;
-    private double sudut; // radian
-    private double tinggi;
+    protected double jariJari;
+    protected double sudut; // radian
+    protected double tinggi;
 
     private static final double PI = Math.PI;
 
@@ -112,5 +112,17 @@ public class Juring extends BolaElips {
         Thread thread = new Thread(this, getNama() + "-Thread");
         thread.setDaemon(true);
         return thread;
+    }
+
+    public double getJariJari() {
+        return jariJari;
+    }
+
+    public double getSudut() {
+        return sudut;
+    }
+
+    public double getTinggiPrisma() {
+        return tinggi;
     }
 }

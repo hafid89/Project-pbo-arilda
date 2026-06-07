@@ -48,7 +48,7 @@ public class BolaElips extends Elips implements VolumeCalculable {
 
     @Override
     public double hitungVolume() {
-        volume = (4.0 / 3.0) * PI * getSumbuPanjang() * getSumbuPendek() * sumbuZ;
+        volume = (4.0 / 3.0) * PI * sumbuPanjang * sumbuPendek * sumbuZ;
         return volume;
     }
 
@@ -63,8 +63,8 @@ public class BolaElips extends Elips implements VolumeCalculable {
     @Override
     public double hitungLuasPermukaan() {
         double p = 1.6075;
-        double ap = Math.pow(getSumbuPanjang(), p);
-        double bp = Math.pow(getSumbuPendek(), p);
+        double ap = Math.pow(sumbuPanjang, p);
+        double bp = Math.pow(sumbuPendek, p);
         double cp = Math.pow(sumbuZ, p);
         luasPermukaan = 4 * PI * Math.pow(((ap * bp) + (ap * cp) + (bp * cp)) / 3.0, 1.0 / p);
         luas = luasPermukaan;
@@ -108,8 +108,8 @@ public class BolaElips extends Elips implements VolumeCalculable {
             Keliling Elips (basis): %.4f satuan panjang
             """,
             getNama(),
-            getSumbuPanjang(),
-            getSumbuPendek(),
+            sumbuPanjang,
+            sumbuPendek,
             sumbuZ,
             volume,
             luasPermukaan,

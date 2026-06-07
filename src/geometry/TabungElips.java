@@ -12,7 +12,7 @@ public class TabungElips extends Elips {
     }
     
     public TabungElips(Elips alas, double tinggi) {
-        super(alas.getSumbuPanjang(), alas.getSumbuPendek());
+        super(alas.sumbuPanjang, alas.sumbuPendek);
         setNama("Tabung Alas Elips");
         this.tinggi = tinggi;
         hitungVolume();
@@ -81,7 +81,7 @@ public class TabungElips extends Elips {
             Luas Permukaan: %.4f satuan luas
             """, 
             getNama(),
-            alas.getSumbuPanjang(), alas.getSumbuPendek(),
+            alas.sumbuPanjang, alas.sumbuPendek,
             tinggi, volume, luasPermukaan);
     }
 

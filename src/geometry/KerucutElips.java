@@ -18,7 +18,7 @@ public class KerucutElips extends Elips {
     }
     
     public KerucutElips(Elips alas, double tinggi) {
-        super(alas.getSumbuPanjang(), alas.getSumbuPendek());
+        super(alas.sumbuPanjang, alas.sumbuPendek);
         setNama("Kerucut Alas Elips");
         this.tinggi = tinggi;
         updateAll();
@@ -45,8 +45,8 @@ public class KerucutElips extends Elips {
     }
     
     public void setAlas(Elips alas) throws GeometryException {
-        setSumbuPanjang(alas.getSumbuPanjang());
-        setSumbuPendek(alas.getSumbuPendek());
+        setSumbuPanjang(alas.sumbuPanjang);
+        setSumbuPendek(alas.sumbuPendek);
         updateAll();
     }
     
@@ -75,8 +75,8 @@ public class KerucutElips extends Elips {
      */
     public double hitungGarisPelukis() {
         Elips alas = getAlas();
-        double a = alas.getSumbuPanjang();
-        double b = alas.getSumbuPendek();
+        double a = alas.sumbuPanjang;
+        double b = alas.sumbuPendek;
         
         // Rumus baru: s = sqrt(t^2 + (a^2 + b^2)/2)
         double rataKuadrat = (a * a + b * b) / 2;
@@ -90,25 +90,18 @@ public class KerucutElips extends Elips {
     }
     
     /**
-     * Menghitung luas selimut kerucut elips
-     *
-     * Pendekatan:
-     * Luas Selimut ≈ 1/2 × Keliling Alas × Garis Pelukis
-     *
-     * Keliling alas menggunakan rumus Ramanujan
-     * dari kelas Elips sehingga lebih akurat dibanding
-     * pendekatan π(a+b).
+     * Menghitung luas selimut dengan rumus:
+     * L_selimut = pi * (a + b) * s
+     * 
+     * Catatan: Rumus ini tetap menggunakan pendekatan keliling elips ≈ pi*(a+b)
+     * Untuk akurasi lebih tinggi, keliling seharusnya menggunakan pendekatan Ramanujan
      */
     public double hitungLuasSelimut() {
-
-        // Keliling alas elips menggunakan aproksimasi Ramanujan
-        double kelilingAlas = super.hitungKeliling();
-
-        // Garis pelukis rata-rata kerucut elips
-        double s = hitungGarisPelukis();
-
-        // Luas selimut ≈ 1/2 × keliling alas × garis pelukis
-        return 0.5 * kelilingAlas * s;
+        Elips alas = getAlas();
+        double a = alas.sumbuPanjang;
+        double b = alas.sumbuPendek;
+        double s = hitungGarisPelukis();  // menggunakan rumus baru
+        return PI * (a + b) * s;
     }
     
     @Override
@@ -152,7 +145,7 @@ public class KerucutElips extends Elips {
             Luas Permukaan: %.4f satuan luas
             """, 
             getNama(),
-            alas.getSumbuPanjang(), alas.getSumbuPendek(),
+            alas.sumbuPanjang, alas.sumbuPendek,
             tinggi, garisPelukis,
             hitungLuasAlas(), hitungLuasSelimut(),
             volume, luasPermukaan);

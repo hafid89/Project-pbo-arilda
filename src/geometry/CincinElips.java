@@ -150,31 +150,33 @@ public class CincinElips extends BolaElips {
         return volume;
     }
 
+    // =========================
+    // Perhitungan Luas Permukaan
+    // =========================
+
+    /**
+     * Menghitung luas permukaan cincin elips
+     *
+     * Pendekatan:
+     * L ≈ 4π²R √((a²+b²)/2)
+     */
     @Override
     public double hitungLuasPermukaan() {
 
-        // Keliling elips penampang (Ramanujan)
-        double a = semiMayor;
-        double b = semiMinor;
-
-        double kelilingElips =
-                PI *
+        double pendekatanElips =
+            Math.sqrt(
                 (
-                    3 * (a + b)
-                    -
-                    Math.sqrt(
-                        (3 * a + b)
-                        *
-                        (a + 3 * b)
-                    )
-                );
+                    Math.pow(semiMayor, 2)
+                    +
+                    Math.pow(semiMinor, 2)
+                ) / 2.0
+            );
 
-        // Teorema Pappus:
-        // Luas = keliling penampang × lintasan centroid
         luasPermukaan =
-                kelilingElips
-                *
-                (2 * PI * radiusUtama);
+            4 *
+            Math.pow(PI, 2) *
+            radiusUtama *
+            pendekatanElips;
 
         return luasPermukaan;
     }
@@ -187,11 +189,16 @@ public class CincinElips extends BolaElips {
         return hitungLuasPermukaan();
     }
 
+    /**
+     * Keliling pendekatan
+     */
     @Override
     public double hitungKeliling() {
 
-        // Keliling lintasan utama torus
-        return 2 * PI * radiusUtama;
+        return
+            2 *
+            PI *
+            (radiusUtama + semiMayor);
     }
 
     // =========================

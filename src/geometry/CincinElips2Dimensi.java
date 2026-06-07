@@ -38,7 +38,7 @@ public class CincinElips2Dimensi extends Elips {
         if (sumbuPanjang2 <= 0) {
             throw new GeometryException("Sumbu panjang elips dalam harus > 0", GeometryException.NEGATIVE_VALUE);
         }
-        if (sumbuPanjang2 >= getSumbuPanjang()) {
+        if (sumbuPanjang2 >= sumbuPanjang) {
             throw new GeometryException("Sumbu panjang elips dalam harus lebih kecil dari elips luar", 
                                       GeometryException.NEGATIVE_VALUE);
         }
@@ -55,7 +55,7 @@ public class CincinElips2Dimensi extends Elips {
         if (sumbuPendek2 <= 0) {
             throw new GeometryException("Sumbu pendek elips dalam harus > 0", GeometryException.NEGATIVE_VALUE);
         }
-        if (sumbuPendek2 >= getSumbuPendek()) {
+        if (sumbuPendek2 >= sumbuPendek) {
             throw new GeometryException("Sumbu pendek elips dalam harus lebih kecil dari elips luar", 
                                       GeometryException.NEGATIVE_VALUE);
         }
@@ -71,7 +71,7 @@ public class CincinElips2Dimensi extends Elips {
     @Override
     public double hitungLuas() {
         // Luas elips luar
-        double luasElipsLuar = PI * getSumbuPanjang() * getSumbuPendek();
+        double luasElipsLuar = PI * sumbuPanjang * sumbuPendek;
         
         // Luas elips dalam
         double luasElipsDalam = PI * sumbuPanjang2 * sumbuPendek2;
@@ -87,25 +87,32 @@ public class CincinElips2Dimensi extends Elips {
      */
     @Override
     public double hitungKeliling() {
-
         // Keliling elips luar
         double kelilingElipsLuar = super.hitungKeliling();
-
-        // Keliling elips dalam
-        double kelilingElipsDalam = hitungKelilingElipsDalam();
-
-        // Keliling cincin = jumlah batas luar dan batas dalam
+        
+        // Keliling elips dalam (menggunakan aproksimasi Ramanujan)
+        double a2 = sumbuPanjang2;
+        double b2 = sumbuPendek2;
+        
+        double kelilingElipsDalam;
+        if (Math.abs(a2 - b2) < 1e-9) {
+            kelilingElipsDalam = 2 * PI * a2;
+        } else {
+            kelilingElipsDalam = PI * (3 * (a2 + b2) - Math.sqrt((3 * a2 + b2) * (a2 + 3 * b2)));
+        }
+        
+        // Keliling cincin = jumlah keliling keduanya
         keliling = kelilingElipsLuar + kelilingElipsDalam;
-
         return keliling;
-    }    
+    }
+    
     /**
      * Method tambahan: Menghitung tebal cincin rata-rata
      * Tebal = (a1 - a2) / 2 (menggunakan sumbu panjang)
      */
     public double hitungTebalCincin() {
-        double tebalSumbuPanjang = (getSumbuPanjang() - sumbuPanjang2) / 2.0;
-        double tebalSumbuPendek = (getSumbuPendek() - sumbuPendek2) / 2.0;
+        double tebalSumbuPanjang = (sumbuPanjang - sumbuPanjang2) / 2.0;
+        double tebalSumbuPendek = (sumbuPendek - sumbuPendek2) / 2.0;
         return (tebalSumbuPanjang + tebalSumbuPendek) / 2.0;
     }
     
@@ -113,7 +120,7 @@ public class CincinElips2Dimensi extends Elips {
      * Method tambahan: Menghitung luas elips luar
      */
     public double hitungLuasElipsLuar() {
-        return PI * getSumbuPanjang() * getSumbuPendek();
+        return PI * sumbuPanjang * sumbuPendek;
     }
     
     /**
@@ -132,25 +139,15 @@ public class CincinElips2Dimensi extends Elips {
     
     /**
      * Method tambahan: Menghitung keliling elips dalam
-     * Menggunakan aproksimasi Ramanujan II (lebih akurat)
      */
     public double hitungKelilingElipsDalam() {
-
         double a2 = sumbuPanjang2;
         double b2 = sumbuPendek2;
-
-        // Jika berbentuk lingkaran
+        
         if (Math.abs(a2 - b2) < 1e-9) {
             return 2 * PI * a2;
         }
-
-        // Ramanujan II
-        double h = Math.pow(a2 - b2, 2)
-                / Math.pow(a2 + b2, 2);
-
-        return PI * (a2 + b2)
-                * (1 + (3 * h)
-                / (10 + Math.sqrt(4 - 3 * h)));
+        return PI * (3 * (a2 + b2) - Math.sqrt((3 * a2 + b2) * (a2 + 3 * b2)));
     }
     
     /**
@@ -200,7 +197,7 @@ public class CincinElips2Dimensi extends Elips {
               Tebal Rata-rata: %.4f satuan panjang
               Persentase Area: %.2f%% dari elips luar
             """, getNama(), 
-                getSumbuPanjang(), getSumbuPendek(), hitungLuasElipsLuar(), 
+                sumbuPanjang, sumbuPendek, hitungLuasElipsLuar(), 
                 hitungKelilingElipsLuar(), hitungEksentrisitasLuar(),
                 sumbuPanjang2, sumbuPendek2, hitungLuasElipsDalam(),
                 hitungKelilingElipsDalam(), hitungEksentrisitasDalam(),
@@ -209,7 +206,7 @@ public class CincinElips2Dimensi extends Elips {
     
     public String toCSVFormat() {
         return String.format("CincinElips2Dimensi,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f", 
-                            getSumbuPanjang(), getSumbuPendek(), 
+                            sumbuPanjang, sumbuPendek, 
                             sumbuPanjang2, sumbuPendek2, 
                             luas, keliling, hitungTebalCincin());
     }
@@ -223,6 +220,6 @@ public class CincinElips2Dimensi extends Elips {
     @Override
     public String toString() {
         return String.format("CincinElips2Dimensi(a1=%.2f, b1=%.2f, a2=%.2f, b2=%.2f, luas=%.2f, keliling=%.2f)", 
-                            getSumbuPanjang(), getSumbuPendek(), sumbuPanjang2, sumbuPendek2, luas, keliling);
+                            sumbuPanjang, sumbuPendek, sumbuPanjang2, sumbuPendek2, luas, keliling);
     }
 }

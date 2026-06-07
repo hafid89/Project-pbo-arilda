@@ -18,7 +18,7 @@ public class KerucutTerpancung extends KerucutElips {
     }
     
     public KerucutTerpancung(Elips alas, double tinggi, double jariJariAtas) {
-        super(alas.getSumbuPanjang(), alas.getSumbuPendek(), tinggi);
+        super(alas.sumbuPanjang, alas.sumbuPendek, tinggi);
         this.isInitialized = false;  // Tandai belum siap
         this.jariJariAtas = jariJariAtas;
         this.alasAtas = new Elips(jariJariAtas, jariJariAtas);
@@ -49,7 +49,7 @@ public class KerucutTerpancung extends KerucutElips {
         if (jariJariAtas <= 0) {
             throw new GeometryException("Jari-jari atas harus > 0", GeometryException.NEGATIVE_VALUE);
         }
-        if (jariJariAtas >= Math.min(getAlas().getSumbuPanjang(), getAlas().getSumbuPendek())) {
+        if (jariJariAtas >= Math.min(getAlas().sumbuPanjang, getAlas().sumbuPendek)) {
             throw new GeometryException("Jari-jari atas harus lebih kecil dari jari-jari alas", 
                                        GeometryException.INVALID_INPUT);
         }
@@ -62,8 +62,8 @@ public class KerucutTerpancung extends KerucutElips {
     @Override
     public double hitungVolume() {
         // Menggunakan rumus volume yang lebih akurat untuk kerucut terpancung dengan alas elips
-        double a1 = getSumbuPanjang();
-        double b1 = getSumbuPendek();
+        double a1 = sumbuPanjang;
+        double b1 = sumbuPendek;
         double a2 = jariJariAtas;
         double b2 = jariJariAtas;
         
@@ -85,54 +85,26 @@ public class KerucutTerpancung extends KerucutElips {
             return luasPermukaan;
         }
         
-        double luasAlasBawah = PI * getSumbuPanjang() * getSumbuPendek();
+        double luasAlasBawah = super.hitungLuasAlas();
         double luasAlasAtas = alasAtas.hitungLuas();
         double luasSelimut = hitungLuasSelimutTerpancung();
         luasPermukaan = luasAlasBawah + luasAlasAtas + luasSelimut;
         return luasPermukaan;
     }
     
-    /**
-     * Menghitung luas selimut kerucut terpancung alas elips
-     *
-     * Pendekatan:
-     * Luas Selimut ≈ 1/2 × (K_bawah + K_atas) × s
-     *
-     * dengan:
-     * K_bawah = keliling elips bawah (Ramanujan)
-     * K_atas  = keliling lingkaran atas
-     * s       = garis pelukis frustum
-     */
     public double hitungLuasSelimutTerpancung() {
-
-        // Keliling alas bawah (elips)
-        double kelilingBawah = getAlas().hitungKeliling();
-
-        // Keliling alas atas (lingkaran)
-        double kelilingAtas = 2 * PI * jariJariAtas;
-
-        // Radius efektif bawah
-        double radiusBawah =
-                Math.sqrt(
-                        getSumbuPanjang()
-                        * getSumbuPendek()
-                );
-
-        // Garis pelukis frustum
-        double s =
-                Math.sqrt(
-                        Math.pow(getTinggi(), 2)
-                        + Math.pow(
-                                radiusBawah - jariJariAtas,
-                                2
-                        )
-                );
-
-        // Luas selimut frustum
-        return 0.5 *
-            (kelilingBawah + kelilingAtas)
-            * s;
-    }    
+        // Menggunakan radius efektif geometric mean untuk akurasi lebih baik
+        Elips alasBawah = getAlas();
+        double radiusBawah = Math.sqrt(alasBawah.sumbuPanjang * alasBawah.sumbuPendek);
+        double radiusAtas = jariJariAtas;
+        
+        // Garis pelukis (selimut)
+        double s = Math.sqrt(Math.pow(getTinggi(), 2) + Math.pow(radiusBawah - radiusAtas, 2));
+        
+        // Luas selimut kerucut terpancung
+        return PI * (radiusBawah + radiusAtas) * s;
+    }
+    
     public double hitungLuasAlasAtas() {
         if (alasAtas == null) {
             // Fallback jika alasAtas belum diinisialisasi
@@ -143,7 +115,7 @@ public class KerucutTerpancung extends KerucutElips {
     
     public double getRadiusEfektifBawah() {
         Elips alasBawah = getAlas();
-        return Math.sqrt(alasBawah.getSumbuPanjang() * alasBawah.getSumbuPendek());
+        return Math.sqrt(alasBawah.sumbuPanjang * alasBawah.sumbuPendek);
     }
     
     public double getRadiusEfektifAtas() {
@@ -167,7 +139,7 @@ public class KerucutTerpancung extends KerucutElips {
             Rasio (r_atas/r_bawah): %.4f
             """, 
             getNama(),
-            alasBawah.getSumbuPanjang(), alasBawah.getSumbuPendek(), radiusEfektifBawah,
+            alasBawah.sumbuPanjang, alasBawah.sumbuPendek, radiusEfektifBawah,
             radiusEfektifAtas, hitungLuasAlasAtas(),
             getTinggi(), volume, luasPermukaan, hitungLuasSelimutTerpancung(),
             radiusEfektifAtas / radiusEfektifBawah);
@@ -186,6 +158,6 @@ public class KerucutTerpancung extends KerucutElips {
                getAlas() != null && 
                getTinggi() > 0 && 
                jariJariAtas > 0 &&
-               jariJariAtas < Math.min(getAlas().getSumbuPanjang(), getAlas().getSumbuPendek());
+               jariJariAtas < Math.min(getAlas().sumbuPanjang, getAlas().sumbuPendek);
     }
 }

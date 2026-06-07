@@ -56,22 +56,19 @@ public class Juring2Dimensi extends Elips {
      * Keliling Juring = 2 × r_setara + panjang busur
      * atau bisa diperhitungkan sebagai: panjang 2 jari-jari + busur
      */
-    // Kubro ubah hitung keliling
     @Override
     public double hitungKeliling() {
-        // Panjang busur elips (aproksimasi menggunakan proporsi keliling)
-        double kelilingElips = super.hitungKeliling();
-        double panjangBusur = (sudutJuring / 360.0) * kelilingElips;
-
-        // Radius pertama (sudut 0°)
-        double r1 = hitungJariJariSudut(0);
-
-        // Radius kedua (sudut akhir juring)
-        double r2 = hitungJariJariSudut(Math.toRadians(sudutJuring));
-
-        // Keliling juring = radius pertama + radius kedua + panjang busur
-        keliling = r1 + r2 + panjangBusur;
-
+        double luasElipsOriginal = PI * sumbuPanjang * sumbuPendek;
+        double kelilingElipsOriginal = super.hitungKeliling();
+        
+        // Panjang busur dari elips yang diambil oleh juring
+        double panjangBusur = (sudutJuring / 360.0) * kelilingElipsOriginal;
+        
+        // Jari-jari rata-rata elips sebagai aproksimasi
+        double rataRataJariJari = (sumbuPanjang + sumbuPendek) / 2.0;
+        
+        // Keliling juring = 2 × jari-jari + busur
+        keliling = 2 * rataRataJariJari + panjangBusur;
         return keliling;
     }
     
@@ -88,8 +85,8 @@ public class Juring2Dimensi extends Elips {
      * Ini menggunakan aproksimasi untuk elips
      */
     public double hitungJariJariSudut(double sudutRadian) {
-        double a = getSumbuPanjang();
-        double b = getSumbuPendek();
+        double a = sumbuPanjang;
+        double b = sumbuPendek;
         double cosSudut = Math.cos(sudutRadian);
         double sinSudut = Math.sin(sudutRadian);
         
@@ -109,13 +106,13 @@ public class Juring2Dimensi extends Elips {
             Keliling Juring: %.4f satuan panjang
             Panjang Busur: %.4f satuan panjang
             Eksentrisitas Elips: %.4f
-            """, getNama(), getSumbuPanjang(), getSumbuPendek(), sudutJuring, luas, keliling, 
+            """, getNama(), sumbuPanjang, sumbuPendek, sudutJuring, luas, keliling, 
                 hitungPanjangBusur(), hitungEksentrisitas());
     }
     
     public String toCSVFormat() {
         return String.format("Juring2Dimensi,%.4f,%.4f,%.2f,%.4f,%.4f", 
-                            getSumbuPanjang(), getSumbuPendek(), sudutJuring, luas, keliling);
+                    sumbuPanjang, sumbuPendek, sudutJuring, luas, keliling);
     }
     
     public void saveToFile(String filename) throws IOException {
@@ -127,6 +124,6 @@ public class Juring2Dimensi extends Elips {
     @Override
     public String toString() {
         return String.format("Juring2Dimensi(a=%.2f, b=%.2f, sudut=%.2f°, luas=%.2f, keliling=%.2f)", 
-                            getSumbuPanjang(), getSumbuPendek(), sudutJuring, luas, keliling);
+                sumbuPanjang, sumbuPendek, sudutJuring, luas, keliling);
     }
 }

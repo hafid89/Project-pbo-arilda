@@ -11,8 +11,8 @@ import java.io.IOException;
  */
 public class Elips extends Benda2Dimensi {
     
-    private double sumbuPanjang;  // sumbu mayor (a)
-    private double sumbuPendek;   // sumbu minor (b)
+    protected double sumbuPanjang;  // sumbu mayor (a)
+    protected double sumbuPendek;   // sumbu minor (b)
     protected double volume;
     protected double luasPermukaan;
     private static final double PI = Math.PI;
@@ -80,7 +80,6 @@ public class Elips extends Benda2Dimensi {
         return keliling;
     }
     
-    // untuk child class
     public double hitungVolume() {
         return 0;
     }
